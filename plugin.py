@@ -13,7 +13,7 @@ from framework.util import Util
 from framework.common.plugin import get_model_setting, Logic, default_route
 # 패키지
 #########################################################
-server_plugin_ddns = 'https://sjva-server.soju6jan.com'
+
 class P(object):
     package_name = __name__.split('.')[0]
     logger = get_logger(package_name)
@@ -21,12 +21,12 @@ class P(object):
     menu = {
         'main' : [package_name, u'메타데이터'],
         'sub' : [
-            ['setting', u'설정'], ['av_censored', u'AV Censored'], ['log', u'로그']
+            ['setting', u'설정'], ['jav_censored', u'JavCensored'], ['log', u'로그']
         ], 
         'category' : 'service',
         'sub2' : {
-            'av_censored' : [
-                ['setting', u'기본 설정'], ['javbus', 'Javbus'], ['dmm', 'DMM'],
+            'jav_censored' : [
+                ['setting', u'기본 설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
             ],
         }
     }  
@@ -56,14 +56,26 @@ class P(object):
                 return data['data']
         except Exception as exception: 
             logger.error('Exception:%s', exception)
+            logger.error(traceback.format_exc())
+    
+    @staticmethod
+    def search_metadata(keyword):
+        try:
+            from framework import py_urllib
+            url = '{server_plugin_ddns}/server/normal/metadata/search?keyword={keyword}'.format(keyword=keyword)
+            data = requests.get(url).json()
+            if data['ret'] == 'success':
+                return data['data']
+        except Exception as exception: 
+            logger.error('Exception:%s', exception)
             logger.error(traceback.format_exc()) 
 
     @staticmethod
-    def set_metadata(code, data):
+    def set_metadata(code, data, keyword):
         try:
             from framework import py_urllib
             url = '{server_plugin_ddns}/server/normal/metadata/set'.format(server_plugin_ddns=server_plugin_ddns)
-            param = {'code':code, 'data':json.dumps(data), 'user':SystemModelSetting.get('sjva_me_user_id')}
+            param = {'code':code, 'data':json.dumps(data), 'user':SystemModelSetting.get('sjva_me_user_id'), 'keyword':keyword}
             data = requests.post(url, data=param).json()
             if data['ret'] == 'success':
                 logger.info('%s Data save success. Thanks!!!!', code)
@@ -79,8 +91,8 @@ def initialize():
         from framework.util import Util
         Util.save_from_dict_to_json(P.plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
 
-        from .logic_av_censored import LogicAVCensored
-        P.module_list = [LogicAVCensored(P)]
+        from .logic_jav_censored import LogicJavCensored
+        P.module_list = [LogicJavCensored(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
