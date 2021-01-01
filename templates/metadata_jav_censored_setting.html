@@ -26,6 +26,7 @@
       <div id="jav_censored_avdbs_use_proxy_div" class="collapse">
       {{ macros.setting_input_text('jav_censored_avdbs_proxy_url', 'Avdbs Proxy URL', value=arg['jav_censored_avdbs_proxy_url'], desc=None) }}
       </div>
+      {{ macros.setting_input_text_and_buttons('jav_censored_actor_test_name', '테스트', [['jav_censored_actor_test_avdbs_btn', 'avdbs'], ['jav_censored_actor_test_hentaku_btn', 'hentaku']], value=arg['jav_censored_actor_test_name'], desc=None) }}
       
     {{ macros.m_tab_content_end() }}
     {{ macros.m_tab_content_start('plex', false) }}
@@ -51,6 +52,35 @@ $(document).ready(function(){
 $('#jav_censored_avdbs_use_proxy').change(function() {
   use_collapse('jav_censored_avdbs_use_proxy');
 });
+
+
+$("body").on('click', '#jav_censored_actor_test_avdbs_btn', function(e){
+  e.preventDefault();
+  func_test('avdbs');
+});
+
+$("body").on('click', '#jav_censored_actor_test_hentaku_btn', function(e){
+  e.preventDefault();
+  func_test('hentaku');
+});
+
+
+function func_test(call) {
+  name = document.getElementById("jav_censored_actor_test_name").value
+  $.ajax({
+    url: '/' + package_name + '/ajax/' + sub + '/actor_test',
+    type: "POST", 
+    cache: false,
+    data: {name:name, call:call},
+    dataType: "json",
+    success: function (ret) {
+      m_modal(ret)
+    }
+  });
+}
+
+
+
 
 </script>    
 {% endblock %}

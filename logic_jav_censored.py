@@ -27,14 +27,14 @@ from lib_metadata.server_util import MetadataServerUtil
 
 class LogicJavCensored(LogicModuleBase):
     db_default = {
-        'db_version' : '1',
+        'jav_censored_db_version' : '1',
         'jav_censored_use_sjva' : 'False',
         'jav_censored_order' : 'dmm, javbus',
         'jav_censored_plex_title_format' : '[{title}] {tagline}',
         'jav_censored_plex_is_proxy_preview' : 'True',
         'jav_censored_plex_landscape_to_art' : 'True',
         'jav_censored_plex_art_count' : '0',
-        'jav_censored_actor_order' : 'javdbs, hentaku',
+        'jav_censored_actor_order' : 'hentaku, avdbs',
         'jav_censored_plex_manual_mode' : 'True',
 
         'jav_censored_avdbs_use_proxy' : 'False',
@@ -50,6 +50,7 @@ class LogicJavCensored(LogicModuleBase):
         'jav_censored_dmm_proxy_url' : '',
         'jav_censored_dmm_image_mode' : '0',
         'jav_censored_dmm_cookie' : 'age_check_done=1',
+        'jav_censored_actor_test_name' : '',
     }
 
     def __init__(self, P):
@@ -85,6 +86,17 @@ class LogicJavCensored(LogicModuleBase):
                         if len(ret['search']['ret']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
                 return jsonify(ret)
+            elif sub == 'actor_test':
+                ModelSetting.set('jav_censored_actor_test_name', req.form['name'])
+                entity_actor = {'originalname' : req.form['name']}
+                call = req.form['call']
+                if call == 'avdbs':
+                    from lib_metadata.site_avdbs import SiteAvdbs
+                    self.process_actor2(entity_actor, SiteAvdbs, ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
+                elif call == 'hentaku':
+                    from lib_metadata.site_hentaku import SiteHentaku
+                    self.process_actor2(entity_actor, SiteHentaku, None)
+                return jsonify(entity_actor)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
@@ -92,7 +104,11 @@ class LogicJavCensored(LogicModuleBase):
 
     def process_api(self, sub, req):
         if sub == 'search':
-            return jsonify(self.search(req.args.get('keyword'), bool(req.args.get('manual'))))
+            call = req.args.get('call')
+            if call == 'plex':
+                manual = bool(req.args.get('manual'))
+                all_find = ModelSetting.get_bool('jav_censored_plex_manual_mode') if manual else False
+                return jsonify(self.search(req.args.get('keyword'), all_find=all_find, do_trans=manual))
         elif sub == 'info':
             return jsonify(self.info(req.args.get('code')))
 
@@ -106,45 +122,30 @@ class LogicJavCensored(LogicModuleBase):
     #########################################################
 
 
-    def search(self, keyword, manual):
+    def search(self, keyword, all_find=False, do_trans=True):
         ret = []
-        logger.debug(manual)
-        logger.debug(type(manual))
         site_list = ModelSetting.get_list('jav_censored_order', ',')
-        logger.debug(site_list)
         for idx, site in enumerate(site_list):
             if site == 'javbus':
-                from lib_metadata.site_javbus import SiteJavbus
-                data = SiteJavbus.search(
-                    keyword, 
-                    proxy_url=ModelSetting.get('jav_censored_javbus_proxy_url') if ModelSetting.get_bool('jav_censored_javbus_use_proxy') else None, 
-                    image_mode=ModelSetting.get('jav_censored_javbus_image_mode'))
-                if data['ret'] == 'success':
-                    if idx != 0:
-                        for item in data['data']:
-                            item['score'] += -1
-                    ret += data['data']
-                    ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
+                from lib_metadata.site_javbus import SiteJavbus as SiteClass
             elif site == 'dmm':
-                from lib_metadata.site_dmm import SiteDmm
-                data = SiteDmm.search(
-                    keyword, 
-                    proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, 
-                    image_mode=ModelSetting.get('jav_censored_dmm_image_mode'))
-                if data['ret'] == 'success':
-                    if idx != 0:
-                        for item in data['data']:
-                            item['score'] += -1
-                    ret += data['data']
-                    ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
-            if manual:
-                if ModelSetting.get_bool('jav_censored_plex_manual_mode'):
-                    continue
-                else:
-                    if len(ret) > 0 and ret[0]['score'] == 100:
-                        break
+                from lib_metadata.site_dmm import SiteDmm as SiteClass
+
+            data = SiteClass.search(
+                keyword, 
+                do_trans=do_trans,
+                proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
+                image_mode=ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=SiteClass.site_name)))
+            if data['ret'] == 'success':
+                if idx != 0:
+                    for item in data['data']:
+                        item['score'] += -1
+                ret += data['data']
+                ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
+            if all_find:
+                continue
             else:
-                if len(ret) > 0 and ret[0]['score'] == 100:
+                if len(ret) > 0 and ret[0]['score'] > 95:
                     break
         return ret
     
@@ -152,14 +153,16 @@ class LogicJavCensored(LogicModuleBase):
     def info(self, code):
         ret = None
         if ModelSetting.get_bool('jav_censored_use_sjva'):
+            #logger.debug('aaaaaaaaaaaaaaa')
             ret = MetadataServerUtil.get_metadata(code)
+            #logger.debug(ret)
         if ret is None:
             if code[1] == 'B':
                 from lib_metadata.site_javbus import SiteJavbus
-                ret = self.info2(code, SiteJavbus, 'javbus')
+                ret = self.info2(code, SiteJavbus)
             elif code[1] == 'D':
                 from lib_metadata.site_dmm import SiteDmm
-                ret = self.info2(code, SiteDmm, 'dmm')
+                ret = self.info2(code, SiteDmm)
         
         if ret is not None:
             ret['plex_is_proxy_preview'] = ModelSetting.get_bool('jav_censored_plex_is_proxy_preview')
@@ -184,12 +187,11 @@ class LogicJavCensored(LogicModuleBase):
             )
             return ret
 
-    def info2(self, code, site_class, site_name):
-        from lib_metadata.site_javbus import SiteJavbus
-        image_mode = ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=site_name))
-        data = site_class.info(
+    def info2(self, code, SiteClass):
+        image_mode = ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=SiteClass.site_name))
+        data = SiteClass.info(
             code,
-            proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=site_name)) else None, 
+            proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
             image_mode=image_mode)
         if data['ret'] == 'success':
             ret = data['data']
@@ -199,29 +201,39 @@ class LogicJavCensored(LogicModuleBase):
 
     def process_actor(self, entity_actor):
         actor_site_list = ModelSetting.get_list('jav_censored_actor_order', ',')
+        logger.debug('actor_site_list : %s', actor_site_list)
         for site in actor_site_list:
             if site == 'hentaku':
                 from lib_metadata.site_hentaku import SiteHentaku
-                self.process_actor2(entity_actor, SiteHentaku, 'H', None)
-            elif site == 'javdbs':
+                self.process_actor2(entity_actor, SiteHentaku, None)
+            elif site == 'avdbs':
                 from lib_metadata.site_avdbs import SiteAvdbs
-                self.process_actor2(entity_actor, SiteAvdbs, 'A', ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
+                self.process_actor2(entity_actor, SiteAvdbs, ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
             if entity_actor['name'] is not None:
                 return
         if entity_actor['name'] is None:
             entity_actor['name'] = entity_actor['originalname'] 
 
 
-    def process_actor2(self, entity_actor, site_class, site_char, proxy_url):
+    def process_actor2(self, entity_actor, SiteClass, proxy_url):
+        
         if ModelSetting.get_bool('jav_censored_use_sjva'):
-            data = MetadataServerUtil.get_metadata('A' + site_char + entity_actor['originalname'])
-            if data is not None:
+            logger.debug('A' + SiteClass.site_char + entity_actor['originalname'])
+            data = MetadataServerUtil.get_metadata('A' + SiteClass.site_char + entity_actor['originalname'])
+            if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
+                logger.info('Get actor info by server : %s %s', entity_actor['originalname'], SiteClass)
+                logger.debug(data)
                 entity_actor['name'] = data['name']
                 entity_actor['name2'] = data['name2']
                 entity_actor['thumb'] = data['thumb']
+                entity_actor['site'] = data['site']
                 return
-        from lib_metadata.site_hentaku import SiteHentaku
-        site_class.get_actor_info(entity_actor, proxy_url=proxy_url)
-        if entity_actor['name'] is not None and entity_actor['thumb'] is not None and entity_actor['thumb'].find('discordapp.net') != -1:
-            MetadataServerUtil.set_metadata('A'+ site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
+        logger.debug('Get actor... :%s', SiteClass)
+        SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
+        #logger.debug('direct actor info : %s %s', entity_actor['name'], entity_actor['originalname'])
+        logger.debug(entity_actor)
+        if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].find('discordapp.net') != -1:
+            MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
             return
+        
+

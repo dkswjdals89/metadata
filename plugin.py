@@ -21,12 +21,15 @@ class P(object):
     menu = {
         'main' : [package_name, u'메타데이터'],
         'sub' : [
-            ['setting', u'설정'], ['jav_censored', u'JavCensored'], ['log', u'로그']
+            ['setting', u'설정'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
         ], 
         'category' : 'service',
         'sub2' : {
             'jav_censored' : [
                 ['setting', u'기본 설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
+            ],
+            'jav_censored_ama' : [
+                ['setting', u'기본 설정'], ['jav321', 'Jav321'], 
             ],
         }
     }  
@@ -92,7 +95,8 @@ def initialize():
         Util.save_from_dict_to_json(P.plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
 
         from .logic_jav_censored import LogicJavCensored
-        P.module_list = [LogicJavCensored(P)]
+        from .logic_jav_censored_ama import LogicJavCensoredAma
+        P.module_list = [LogicJavCensored(P), LogicJavCensoredAma(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
@@ -183,9 +187,9 @@ def baseapi(sub):
             
             return send_file(filename, mimetype='image/jpeg')
         elif sub == 'discord_proxy':
-            from framework.common.notify import discord_proxy_image
+            from tool_expand import ToolExpandDiscord
             image_url = py_urllib.unquote_plus(request.args.get('url'))
-            ret = discord_proxy_image(image_url)
+            ret = ToolExpandDiscord.discord_proxy_image(image_url)
             #logger.debug(ret)
             return redirect(ret)
             from PIL import Image
