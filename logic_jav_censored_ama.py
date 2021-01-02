@@ -173,7 +173,7 @@ class LogicJavCensoredAma(LogicModuleBase):
                 premiered=ret['premiered'],
                 year=ret['year'],
                 actor=ret['actor'][0]['name'] if ret['actor'] is not None and len(ret['actor']) > 0 else '',
-                tagline=ret['tagline']
+                tagline=ret['tagline'] if ret['tagline'] is not None else '',
             )
             return ret
 
