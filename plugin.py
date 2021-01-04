@@ -23,7 +23,7 @@ class P(object):
         'sub' : [
             ['setting', u'설정'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
         ], 
-        'category' : 'service',
+        'category' : 'tool',
         'sub2' : {
             'jav_censored' : [
                 ['setting', u'기본 설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
@@ -37,7 +37,7 @@ class P(object):
     plugin_info = {
         'version' : '0.2.0.0',
         'name' : package_name,
-        'category_name' : 'service',
+        'category_name' : 'tool',
         'icon' : '',
         'developer' : u'soju6jan',
         'description' : u'Metadata',
