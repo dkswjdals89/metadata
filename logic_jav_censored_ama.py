@@ -35,7 +35,7 @@ class LogicJavCensoredAma(LogicModuleBase):
         'jav_censored_ama_jav321_image_mode' : '3',
 
         'jav_censored_ama_order' : 'mgstage, jav321, r18',
-        'jav_censored_ama_plex_title_format' : '{title}',
+        'jav_censored_ama_title_format' : '[{title}] {tagline}',
     }
 
     """            
@@ -163,7 +163,7 @@ class LogicJavCensoredAma(LogicModuleBase):
                     #self.process_actor(item)
                     item['name'] = item['originalname']
                
-            ret['title'] = ModelSetting.get('jav_censored_ama_plex_title_format').format(
+            ret['title'] = ModelSetting.get('jav_censored_ama_title_format').format(
                 originaltitle=ret['originaltitle'], 
                 plot=ret['plot'],
                 title=ret['title'],

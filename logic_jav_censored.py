@@ -30,7 +30,7 @@ class LogicJavCensored(LogicModuleBase):
         'jav_censored_db_version' : '1',
         'jav_censored_use_sjva' : 'False',
         'jav_censored_order' : 'dmm, javbus',
-        'jav_censored_plex_title_format' : '[{title}] {tagline}',
+        'jav_censored_title_format' : '[{title}] {tagline}',
         'jav_censored_plex_is_proxy_preview' : 'True',
         'jav_censored_plex_landscape_to_art' : 'True',
         'jav_censored_plex_art_count' : '0',
@@ -189,7 +189,7 @@ class LogicJavCensored(LogicModuleBase):
                 for item in ret['actor']:
                     self.process_actor(item)
 
-            ret['title'] = ModelSetting.get('jav_censored_plex_title_format').format(
+            ret['title'] = ModelSetting.get('jav_censored_title_format').format(
                 originaltitle=ret['originaltitle'], 
                 plot=ret['plot'],
                 title=ret['title'],
