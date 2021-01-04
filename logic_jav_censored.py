@@ -6,7 +6,7 @@ from datetime import datetime
 # third-party
 import requests
 # third-party
-from flask import request, render_template, jsonify, redirect
+from flask import request, render_template, jsonify, redirect, Response, send_file
 from sqlalchemy import or_, and_, func, not_, desc
 import lxml.html
 from lxml import etree as ET
@@ -97,6 +97,7 @@ class LogicJavCensored(LogicModuleBase):
                     from lib_metadata.site_hentaku import SiteHentaku
                     self.process_actor2(entity_actor, SiteHentaku, None)
                 return jsonify(entity_actor)
+            
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
@@ -111,6 +112,23 @@ class LogicJavCensored(LogicModuleBase):
                 return jsonify(self.search(req.args.get('keyword'), all_find=all_find, do_trans=manual))
         elif sub == 'info':
             return jsonify(self.info(req.args.get('code')))
+
+    def process_normal(self, sub, req):
+        if sub == 'nfo_download':
+            #code = req.form['code']
+            code = req.args.get('code')
+            #call = req.form['call']
+            call = req.args.get('call')
+            if call == 'dmm':
+                from lib_metadata.site_dmm import SiteDmm
+                ModelSetting.set('jav_censored_dmm_code', code)
+                ret = {}
+                ret['search'] = SiteDmm.search(code, proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_dmm_image_mode'))
+                if ret['search']['ret'] == 'success':
+                    if len(ret['search']['ret']) > 0:
+                        ret['info'] = self.info(ret['search']['data'][0]['code'])
+                        from lib_metadata.util_nfo import UtilNfo
+                        return UtilNfo.make_nfo_movie(ret['info'], output='file', filename='%s.nfo' % ret['info']['originaltitle'].upper())
 
     def setting_save_after(self):
         from lib_metadata.site_dmm import SiteDmm
@@ -153,9 +171,7 @@ class LogicJavCensored(LogicModuleBase):
     def info(self, code):
         ret = None
         if ModelSetting.get_bool('jav_censored_use_sjva'):
-            #logger.debug('aaaaaaaaaaaaaaa')
             ret = MetadataServerUtil.get_metadata(code)
-            #logger.debug(ret)
         if ret is None:
             if code[1] == 'B':
                 from lib_metadata.site_javbus import SiteJavbus
@@ -201,7 +217,7 @@ class LogicJavCensored(LogicModuleBase):
 
     def process_actor(self, entity_actor):
         actor_site_list = ModelSetting.get_list('jav_censored_actor_order', ',')
-        logger.debug('actor_site_list : %s', actor_site_list)
+        #logger.debug('actor_site_list : %s', actor_site_list)
         for site in actor_site_list:
             if site == 'hentaku':
                 from lib_metadata.site_hentaku import SiteHentaku
@@ -218,20 +234,18 @@ class LogicJavCensored(LogicModuleBase):
     def process_actor2(self, entity_actor, SiteClass, proxy_url):
         
         if ModelSetting.get_bool('jav_censored_use_sjva'):
-            logger.debug('A' + SiteClass.site_char + entity_actor['originalname'])
+            #logger.debug('A' + SiteClass.site_char + entity_actor['originalname'])
             data = MetadataServerUtil.get_metadata('A' + SiteClass.site_char + entity_actor['originalname'])
             if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
                 logger.info('Get actor info by server : %s %s', entity_actor['originalname'], SiteClass)
-                logger.debug(data)
                 entity_actor['name'] = data['name']
                 entity_actor['name2'] = data['name2']
                 entity_actor['thumb'] = data['thumb']
                 entity_actor['site'] = data['site']
                 return
-        logger.debug('Get actor... :%s', SiteClass)
+        #logger.debug('Get actor... :%s', SiteClass)
         SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
-        #logger.debug('direct actor info : %s %s', entity_actor['name'], entity_actor['originalname'])
-        logger.debug(entity_actor)
+        #logger.debug(entity_actor)
         if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].find('discordapp.net') != -1:
             MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
             return
