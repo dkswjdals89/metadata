@@ -212,7 +212,7 @@ class LogicJavCensored(LogicModuleBase):
         if data['ret'] == 'success':
             ret = data['data']
             logger.debug(ret)
-            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '' and len(ret['thumb']) == 2 and ret['thumb'][0]['value'].find('discordapp.net') != -1 and ret['thumb'][1]['value'].find('discordapp.net') != -1:
+            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '' and len(ret['thumb']) == 2 and ret['thumb'][0]['value'].startswith('https://images-ext-') and ret['thumb'][1]['value'].startswith('https://images-ext-'):
                 MetadataServerUtil.set_metadata(code, ret, ret['title'].lower())
         return ret
 
@@ -247,7 +247,7 @@ class LogicJavCensored(LogicModuleBase):
         #logger.debug('Get actor... :%s', SiteClass)
         SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
         #logger.debug(entity_actor)
-        if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].find('discordapp.net') != -1:
+        if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].startswith('https://images-ext-'):
             MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
             return
         
