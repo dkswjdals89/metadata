@@ -49,45 +49,7 @@ class P(object):
     module_list = None
     home_module = 'setting'
 
-    @staticmethod
-    def get_metadata(code):
-        try:
-            from framework import py_urllib
-            url = '{server_plugin_ddns}/server/normal/metadata/get?code={code}'.format(server_plugin_ddns=server_plugin_ddns, code=code)
-            data = requests.get(url).json()
-            if data['ret'] == 'success':
-                return data['data']
-        except Exception as exception: 
-            logger.error('Exception:%s', exception)
-            logger.error(traceback.format_exc())
     
-    @staticmethod
-    def search_metadata(keyword):
-        try:
-            from framework import py_urllib
-            url = '{server_plugin_ddns}/server/normal/metadata/search?keyword={keyword}'.format(keyword=keyword)
-            data = requests.get(url).json()
-            if data['ret'] == 'success':
-                return data['data']
-        except Exception as exception: 
-            logger.error('Exception:%s', exception)
-            logger.error(traceback.format_exc()) 
-
-    @staticmethod
-    def set_metadata(code, data, keyword):
-        try:
-            from framework import py_urllib
-            url = '{server_plugin_ddns}/server/normal/metadata/set'.format(server_plugin_ddns=server_plugin_ddns)
-            param = {'code':code, 'data':json.dumps(data), 'user':SystemModelSetting.get('sjva_me_user_id'), 'keyword':keyword}
-            data = requests.post(url, data=param).json()
-            if data['ret'] == 'success':
-                logger.info('%s Data save success. Thanks!!!!', code)
-        except Exception as exception: 
-            logger.error('Exception:%s', exception)
-            logger.error(traceback.format_exc()) 
-
-
-
 def initialize():
     try:
         app.config['SQLALCHEMY_BINDS'][P.package_name] = 'sqlite:///%s' % (os.path.join(path_data, 'db', '{package_name}.db'.format(package_name=P.package_name)))

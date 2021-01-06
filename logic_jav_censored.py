@@ -211,9 +211,8 @@ class LogicJavCensored(LogicModuleBase):
             image_mode=image_mode)
         if data['ret'] == 'success':
             ret = data['data']
-            logger.debug(ret)
-            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '' and len(ret['thumb']) == 2 and ret['thumb'][0]['value'].startswith('https://images-ext-') and ret['thumb'][1]['value'].startswith('https://images-ext-'):
-                MetadataServerUtil.set_metadata(code, ret, ret['title'].lower())
+            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '':
+                MetadataServerUtil.set_metadata_jav_censored(code, ret, ret['title'].lower())
         return ret
 
     def process_actor(self, entity_actor):

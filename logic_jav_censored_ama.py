@@ -186,10 +186,10 @@ class LogicJavCensoredAma(LogicModuleBase):
             proxy_url=ModelSetting.get('jav_censored_ama_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_ama_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
             image_mode=image_mode)
         logger.debug(data)
-        
+
         if data['ret'] == 'success':
             ret = data['data']
-            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '' and len(ret['thumb']) > 1 and ret['thumb'][0]['value'].find('discordapp.net') != -1:
-                MetadataServerUtil.set_metadata(code, ret, ret['title'].lower())
+            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '':
+                MetadataServerUtil.set_metadata_jav_censored(code, ret, ret['title'].lower())
         return ret
 
