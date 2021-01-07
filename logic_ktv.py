@@ -54,34 +54,7 @@ class LogicKtv(LogicModuleBase):
                     ModelSetting.set('jav_ktv_daum_keyword', keyword)
                     ret = {}
                     ret['search'] = SiteDaumTv.search(keyword)
-
-                    """
-                    if ret['search']['ret'] == 'success':
-                        if len(ret['search']['ret']) > 0:
-                            ret['info'] = self.info(ret['search']['data'][0]['code'])
-                    """
-
-                elif call == 'dmm':
-                    from lib_metadata.site_dmm import SiteDmm
-                    ModelSetting.set('jav_censored_dmm_code', code)
-                    ret = {}
-                    ret['search'] = SiteDmm.search(code, proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_dmm_image_mode'))
-                    if ret['search']['ret'] == 'success':
-                        if len(ret['search']['ret']) > 0:
-                            ret['info'] = self.info(ret['search']['data'][0]['code'])
                 return jsonify(ret)
-            elif sub == 'actor_test':
-                ModelSetting.set('jav_censored_actor_test_name', req.form['name'])
-                entity_actor = {'originalname' : req.form['name']}
-                call = req.form['call']
-                if call == 'avdbs':
-                    from lib_metadata.site_avdbs import SiteAvdbs
-                    self.process_actor2(entity_actor, SiteAvdbs, ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
-                elif call == 'hentaku':
-                    from lib_metadata.site_hentaku import SiteHentaku
-                    self.process_actor2(entity_actor, SiteHentaku, None)
-                return jsonify(entity_actor)
-            
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
@@ -91,53 +64,22 @@ class LogicKtv(LogicModuleBase):
         if sub == 'search':
             call = req.args.get('call')
             if call == 'plex':
-                manual = bool(req.args.get('manual'))
-                all_find = ModelSetting.get_bool('jav_censored_plex_manual_mode') if manual else False
-                return jsonify(self.search(req.args.get('keyword'), all_find=all_find, do_trans=manual))
+                return jsonify(self.search(req.args.get('keyword')))
         elif sub == 'info':
             return jsonify(self.info(req.args.get('code')))
 
-    def process_normal(self, sub, req):
-        if sub == 'nfo_download':
-            #code = req.form['code']
-            code = req.args.get('code')
-            #call = req.form['call']
-            call = req.args.get('call')
-            if call == 'dmm':
-                from lib_metadata.site_dmm import SiteDmm
-                ModelSetting.set('jav_censored_dmm_code', code)
-                ret = {}
-                ret['search'] = SiteDmm.search(code, proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_dmm_image_mode'))
-                if ret['search']['ret'] == 'success':
-                    if len(ret['search']['ret']) > 0:
-                        ret['info'] = self.info(ret['search']['data'][0]['code'])
-                        from lib_metadata.util_nfo import UtilNfo
-                        return UtilNfo.make_nfo_movie(ret['info'], output='file', filename='%s.nfo' % ret['info']['originaltitle'].upper())
-
-    def setting_save_after(self):
-        from lib_metadata.site_dmm import SiteDmm
-        SiteDmm.dmm_headers['Cookie'] = ModelSetting.get('jav_censored_dmm_cookie')
-
-    def plugin_load(self):
-        from lib_metadata.site_dmm import SiteDmm
-        SiteDmm.dmm_headers['Cookie'] = ModelSetting.get('jav_censored_dmm_cookie')
     #########################################################
 
-
-    def search(self, keyword, all_find=False, do_trans=True):
+    def search(self, keyword):
         ret = []
-        site_list = ModelSetting.get_list('jav_censored_order', ',')
+        #site_list = ModelSetting.get_list('jav_censored_order', ',')
+        site_list = ['daum']
         for idx, site in enumerate(site_list):
-            if site == 'javbus':
-                from lib_metadata.site_javbus import SiteJavbus as SiteClass
-            elif site == 'dmm':
-                from lib_metadata.site_dmm import SiteDmm as SiteClass
+            if site == 'daum':
+                from lib_metadata import SiteDaumTv as SiteClass
 
-            data = SiteClass.search(
-                keyword, 
-                do_trans=do_trans,
-                proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-                image_mode=ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=SiteClass.site_name)))
+            data = SiteClass.search(keyword)
+            return data
             if data['ret'] == 'success':
                 if idx != 0:
                     for item in data['data']:
