@@ -47,10 +47,10 @@ class LogicKtv(LogicModuleBase):
     def process_ajax(self, sub, req):
         try:
             if sub == 'test':
-                keyword = req.form['code']
+                keyword = req.form['keyword']
                 call = req.form['call']
                 if call == 'daum':
-                    from lib_metadata import SiteDaum
+                    from lib_metadata import SiteDaumTv
                     ModelSetting.set('jav_ktv_daum_keyword', keyword)
                     ret = {}
                     ret['search'] = SiteDaumTv.search(keyword)
@@ -60,7 +60,7 @@ class LogicKtv(LogicModuleBase):
                         if len(ret['search']['ret']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
                     """
-                    
+
                 elif call == 'dmm':
                     from lib_metadata.site_dmm import SiteDmm
                     ModelSetting.set('jav_censored_dmm_code', code)
