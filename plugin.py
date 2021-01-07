@@ -21,10 +21,13 @@ class P(object):
     menu = {
         'main' : [package_name, u'메타데이터'],
         'sub' : [
-            ['setting', u'설정'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
+            ['ktv', u'국내 방송 (개발중)'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
         ], 
         'category' : 'tool',
         'sub2' : {
+            'ktv' : [
+                ['setting', u'기본 설정'], ['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
+            ],
             'jav_censored' : [
                 ['setting', u'기본 설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
             ],
@@ -56,9 +59,10 @@ def initialize():
         from framework.util import Util
         Util.save_from_dict_to_json(P.plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
 
+        from .logic_ktv import LogicKtv
         from .logic_jav_censored import LogicJavCensored
         from .logic_jav_censored_ama import LogicJavCensoredAma
-        P.module_list = [LogicJavCensored(P), LogicJavCensoredAma(P)]
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 

@@ -25,58 +25,42 @@ ModelSetting = P.ModelSetting
 from lib_metadata.server_util import MetadataServerUtil
 #########################################################
 
-class LogicJavCensored(LogicModuleBase):
+class LogicKtv(LogicModuleBase):
     db_default = {
-        'jav_censored_db_version' : '1',
-        'jav_censored_use_sjva' : 'False',
-        'jav_censored_order' : 'dmm, javbus',
-        'jav_censored_title_format' : '[{title}] {tagline}',
-        'jav_censored_plex_is_proxy_preview' : 'True',
-        'jav_censored_plex_landscape_to_art' : 'True',
-        'jav_censored_plex_art_count' : '0',
-        'jav_censored_actor_order' : 'hentaku, avdbs',
-        'jav_censored_plex_manual_mode' : 'True',
-
-        'jav_censored_avdbs_use_proxy' : 'False',
-        'jav_censored_avdbs_proxy_url' : '',
-
-        'jav_censored_javbus_code' : 'ssni-900',
-        'jav_censored_javbus_use_proxy' : 'False',
-        'jav_censored_javbus_proxy_url' : '',
-        'jav_censored_javbus_image_mode' : '0',
-
-        'jav_censored_dmm_code' : 'ssni-900',
-        'jav_censored_dmm_use_proxy' : 'False',
-        'jav_censored_dmm_proxy_url' : '',
-        'jav_censored_dmm_image_mode' : '0',
-        'jav_censored_dmm_cookie' : 'age_check_done=1',
-        'jav_censored_actor_test_name' : '',
+        'jav_ktv_db_version' : '1',
+        'jav_ktv_daum_keyword' : u'나의 아저씨',
     }
 
     def __init__(self, P):
-        super(LogicJavCensored, self).__init__(P, 'setting')
-        self.name = 'jav_censored'
+        super(LogicKtv, self).__init__(P, 'setting')
+        self.name = 'ktv'
 
     def process_menu(self, sub, req):
         arg = P.ModelSetting.to_dict()
         arg['sub'] = self.name
-        #if sub in ['setting']:
-        return render_template('{package_name}_{module_name}_{sub}.html'.format(package_name=P.package_name, module_name=self.name, sub=sub), arg=arg)
-        return render_template('sample.html', title='%s - %s' % (P.package_name, sub))
+
+        try:
+            return render_template('{package_name}_{module_name}_{sub}.html'.format(package_name=P.package_name, module_name=self.name, sub=sub), arg=arg)
+        except:
+            return render_template('sample.html', title='%s - %s' % (P.package_name, sub))
 
     def process_ajax(self, sub, req):
         try:
             if sub == 'test':
-                code = req.form['code']
+                keyword = req.form['code']
                 call = req.form['call']
-                if call == 'javbus':
-                    from lib_metadata.site_javbus import SiteJavbus
-                    ModelSetting.set('jav_censored_javbus_code', code)
+                if call == 'daum':
+                    from lib_metadata import SiteDaum
+                    ModelSetting.set('jav_ktv_daum_keyword', keyword)
                     ret = {}
-                    ret['search'] = SiteJavbus.search(code, proxy_url=ModelSetting.get('jav_censored_javbus_proxy_url') if ModelSetting.get_bool('jav_censored_javbus_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_javbus_image_mode'))
+                    ret['search'] = SiteDaumTv.search(keyword)
+
+                    """
                     if ret['search']['ret'] == 'success':
                         if len(ret['search']['ret']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
+                    """
+                    
                 elif call == 'dmm':
                     from lib_metadata.site_dmm import SiteDmm
                     ModelSetting.set('jav_censored_dmm_code', code)
@@ -246,9 +230,8 @@ class LogicJavCensored(LogicModuleBase):
         #logger.debug('Get actor... :%s', SiteClass)
         SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
         #logger.debug(entity_actor)
-        if ModelSetting.get_bool('jav_censored_use_sjva'):
-            if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].startswith('https://images-ext-'):
-                MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
-                return
+        if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].startswith('https://images-ext-'):
+            MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
+            return
         
 
