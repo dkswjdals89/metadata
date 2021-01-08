@@ -14,7 +14,7 @@
   <form id='setting' name='setting'>
   <div class="tab-content" id="nav-tabContent">
     {{ macros.m_tab_content_start('normal', true) }}
-      {{ macros.setting_input_text_and_buttons('jav_ktv_daum_keyword', '테스트', [['jav_ktv_daum_keyword', '테스트']], value=arg['jav_ktv_daum_keyword'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('ktv_daum_keyword', '테스트', [['ktv_daum_keyword', '테스트']], value=arg['ktv_daum_keyword'], desc=None) }}
     {{ macros.m_tab_content_end() }}
   </div><!--tab-content-->
 </form>
@@ -30,13 +30,13 @@ $(document).ready(function(){
 });
 
 
-$("body").on('click', '#jav_ktv_daum_keyword', function(e){
+$("body").on('click', '#ktv_daum_keyword', function(e){
   e.preventDefault();
   func_test('daum');
 });
 
 function func_test(call) {
-  keyword = document.getElementById("jav_ktv_daum_keyword").value
+  keyword = document.getElementById("ktv_daum_keyword").value
   $.ajax({
     url: '/' + package_name + '/ajax/' + sub + '/test',
     type: "POST", 

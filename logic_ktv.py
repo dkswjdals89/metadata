@@ -27,8 +27,11 @@ from lib_metadata.server_util import MetadataServerUtil
 
 class LogicKtv(LogicModuleBase):
     db_default = {
-        'jav_ktv_db_version' : '1',
-        'jav_ktv_daum_keyword' : u'나의 아저씨',
+        'ktv_db_version' : '1',
+        'ktv_daum_keyword' : u'나의 아저씨',
+        'ktv_plex_is_proxy_preview' : u'True',
+        'ktv_plex_landscape_to_art' : u'True',
+        'ktv_censored_plex_art_count' : u'3',
     }
 
     def __init__(self, P):
@@ -54,6 +57,10 @@ class LogicKtv(LogicModuleBase):
                     ModelSetting.set('jav_ktv_daum_keyword', keyword)
                     ret = {}
                     ret['search'] = SiteDaumTv.search(keyword)
+                    if ret['search']['ret'] == 'success':
+                        ret['info'] = self.info(ret['search']['data']['code'], ret['search']['data']['title'])
+
+
                 return jsonify(ret)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
@@ -66,7 +73,7 @@ class LogicKtv(LogicModuleBase):
             if call == 'plex':
                 return jsonify(self.search(req.args.get('keyword')))
         elif sub == 'info':
-            return jsonify(self.info(req.args.get('code')))
+            return jsonify(self.info(req.args.get('code'), req.args.get('title')))
 
     #########################################################
 
@@ -94,86 +101,17 @@ class LogicKtv(LogicModuleBase):
         return ret
     
 
-    def info(self, code):
+    def info(self, code, title):
         ret = None
-        if ModelSetting.get_bool('jav_censored_use_sjva'):
-            ret = MetadataServerUtil.get_metadata(code)
         if ret is None:
-            if code[1] == 'B':
-                from lib_metadata.site_javbus import SiteJavbus
-                ret = self.info2(code, SiteJavbus)
-            elif code[1] == 'D':
-                from lib_metadata.site_dmm import SiteDmm
-                ret = self.info2(code, SiteDmm)
+            if code[1] == 'D':
+                from lib_metadata import SiteDaumTv
+                ret = SiteDaumTv.info(code, title)
         
         if ret is not None:
-            ret['plex_is_proxy_preview'] = ModelSetting.get_bool('jav_censored_plex_is_proxy_preview')
-            ret['plex_is_landscape_to_art'] = ModelSetting.get_bool('jav_censored_plex_landscape_to_art')
-            ret['plex_art_count'] = ModelSetting.get_int('jav_censored_plex_art_count')
+            ret['plex_is_proxy_preview'] = ModelSetting.get_bool('ktv_plex_is_proxy_preview')
+            ret['plex_is_landscape_to_art'] = ModelSetting.get_bool('ktv_plex_landscape_to_art')
+            ret['plex_art_count'] = ModelSetting.get_int('ktv_censored_plex_art_count')
 
-            if ret['actor'] is not None:
-                for item in ret['actor']:
-                    self.process_actor(item)
-
-            ret['title'] = ModelSetting.get('jav_censored_title_format').format(
-                originaltitle=ret['originaltitle'], 
-                plot=ret['plot'],
-                title=ret['title'],
-                sorttitle=ret['sorttitle'],
-                runtime=ret['runtime'],
-                country=ret['country'],
-                premiered=ret['premiered'],
-                year=ret['year'],
-                actor=ret['actor'][0]['name'] if ret['actor'] is not None and len(ret['actor']) > 0 else '',
-                tagline=ret['tagline']
-            )
             return ret
-
-    def info2(self, code, SiteClass):
-        image_mode = ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=SiteClass.site_name))
-        data = SiteClass.info(
-            code,
-            proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-            image_mode=image_mode)
-        if data['ret'] == 'success':
-            ret = data['data']
-            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '':
-                MetadataServerUtil.set_metadata_jav_censored(code, ret, ret['title'].lower())
-        return ret
-
-    def process_actor(self, entity_actor):
-        actor_site_list = ModelSetting.get_list('jav_censored_actor_order', ',')
-        #logger.debug('actor_site_list : %s', actor_site_list)
-        for site in actor_site_list:
-            if site == 'hentaku':
-                from lib_metadata.site_hentaku import SiteHentaku
-                self.process_actor2(entity_actor, SiteHentaku, None)
-            elif site == 'avdbs':
-                from lib_metadata.site_avdbs import SiteAvdbs
-                self.process_actor2(entity_actor, SiteAvdbs, ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
-            if entity_actor['name'] is not None:
-                return
-        if entity_actor['name'] is None:
-            entity_actor['name'] = entity_actor['originalname'] 
-
-
-    def process_actor2(self, entity_actor, SiteClass, proxy_url):
-        
-        if ModelSetting.get_bool('jav_censored_use_sjva'):
-            #logger.debug('A' + SiteClass.site_char + entity_actor['originalname'])
-            data = MetadataServerUtil.get_metadata('A' + SiteClass.site_char + entity_actor['originalname'])
-            if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
-                logger.info('Get actor info by server : %s %s', entity_actor['originalname'], SiteClass)
-                entity_actor['name'] = data['name']
-                entity_actor['name2'] = data['name2']
-                entity_actor['thumb'] = data['thumb']
-                entity_actor['site'] = data['site']
-                return
-        #logger.debug('Get actor... :%s', SiteClass)
-        SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
-        #logger.debug(entity_actor)
-        if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].startswith('https://images-ext-'):
-            MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
-            return
-        
 
