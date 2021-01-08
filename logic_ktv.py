@@ -82,11 +82,15 @@ class LogicKtv(LogicModuleBase):
         #site_list = ModelSetting.get_list('jav_censored_order', ',')
         site_list = ['daum']
         for idx, site in enumerate(site_list):
-            if site == 'daum':
-                from lib_metadata import SiteDaumTv as SiteClass
+            from lib_metadata import SiteDaumTv 
 
-            data = SiteClass.search(keyword)
-            return data
+            data = SiteDaumTv.search(keyword)
+            if data['ret'] == 'success':
+                ret = data['data']
+           
+            return ret
+
+
             if data['ret'] == 'success':
                 if idx != 0:
                     for item in data['data']:
@@ -106,8 +110,36 @@ class LogicKtv(LogicModuleBase):
         if ret is None:
             if code[1] == 'D':
                 from lib_metadata import SiteDaumTv
-                ret = SiteDaumTv.info(code, title)
-        
+                tmp = SiteDaumTv.info(code, title)
+                if tmp['ret'] == 'success':
+                    ret = tmp['data']
+         
+                logger.debug(ret['extra_info']['kakao_id'])
+                ret['extras'] = SiteDaumTv.get_kakao_video(ret['extra_info']['kakao_id'])
+
+
+
+                import tmdbsimple
+                tmdbsimple.API_KEY = 'f090bb54758cabf231fb605d3e3e0468'
+
+                tmdb_search = tmdbsimple.Search().tv(query =ret['title'], language='ko')
+                #match_ret = self.match_tmdb(ret, tmdb)
+
+                ret['tmdb'] = {}
+                ret['tmdb']['tmdb_search'] = tmdb_search
+                for t in tmdb_search['results']:
+                    if ret['premiered'] == t['first_air_date']:
+                        ret['tmdb']['tmdb_id'] = t['id']
+                        break
+                if 'tmdb_id' in ret['tmdb']:
+                    tmdb = tmdbsimple.TV(ret['tmdb']['tmdb_id'])
+                    ret['tmdb']['info'] = tmdb.info()
+                    ret['tmdb']['images'] = tmdb.images()
+                    ret['tmdb']['info'] = tmdb.credits()
+
+                logger.debug(tmdb_search)
+
+
         if ret is not None:
             ret['plex_is_proxy_preview'] = ModelSetting.get_bool('ktv_plex_is_proxy_preview')
             ret['plex_is_landscape_to_art'] = ModelSetting.get_bool('ktv_plex_landscape_to_art')
