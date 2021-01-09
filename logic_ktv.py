@@ -117,27 +117,13 @@ class LogicKtv(LogicModuleBase):
                 logger.debug(ret['extra_info']['kakao_id'])
                 ret['extras'] = SiteDaumTv.get_kakao_video(ret['extra_info']['kakao_id'])
 
+                from lib_metadata import SiteTmdbTv
+                tmdb_id = SiteTmdbTv.search_tv(ret['title'], ret['premiered'])
+                if tmdb_id is not None:
+                    ret['tmdb'] = {}
+                    ret['tmdb']['tmdb_id'] = tmdb_id
 
-
-                import tmdbsimple
-                tmdbsimple.API_KEY = 'f090bb54758cabf231fb605d3e3e0468'
-
-                tmdb_search = tmdbsimple.Search().tv(query =ret['title'], language='ko')
-                #match_ret = self.match_tmdb(ret, tmdb)
-
-                ret['tmdb'] = {}
-                ret['tmdb']['tmdb_search'] = tmdb_search
-                for t in tmdb_search['results']:
-                    if ret['premiered'] == t['first_air_date']:
-                        ret['tmdb']['tmdb_id'] = t['id']
-                        break
-                if 'tmdb_id' in ret['tmdb']:
-                    tmdb = tmdbsimple.TV(ret['tmdb']['tmdb_id'])
-                    ret['tmdb']['info'] = tmdb.info()
-                    ret['tmdb']['images'] = tmdb.images()
-                    ret['tmdb']['info'] = tmdb.credits()
-
-                logger.debug(tmdb_search)
+                    SiteTmdbTv.apply(tmdb_id, ret, apply_image=True, apply_actor_image=True)
 
 
         if ret is not None:
