@@ -124,7 +124,7 @@ class LogicJavCensoredAma(LogicModuleBase):
 
             data = SiteClass.search(
                 keyword, 
-                proxy_url=ModelSetting.get('jav_censored_ama_{site_name}_proxy_url'.foramt(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_ama_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
+                proxy_url=ModelSetting.get('jav_censored_ama_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_ama_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
                 image_mode=ModelSetting.get('jav_censored_ama_{site_name}_image_mode'.format(site_name=SiteClass.site_name)))
             if data['ret'] == 'success':
                 for item in data['data']:

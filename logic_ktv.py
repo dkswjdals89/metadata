@@ -113,18 +113,23 @@ class LogicKtv(LogicModuleBase):
                 tmp = SiteDaumTv.info(code, title)
                 if tmp['ret'] == 'success':
                     ret = tmp['data']
-         
-                logger.debug(ret['extra_info']['kakao_id'])
-                ret['extras'] = SiteDaumTv.get_kakao_video(ret['extra_info']['kakao_id'])
+
+                if ret['extra_info']['kakao_id'] is not None:
+                    ret['extras'] = SiteDaumTv.get_kakao_video(ret['extra_info']['kakao_id'])
 
                 from lib_metadata import SiteTmdbTv
                 tmdb_id = SiteTmdbTv.search_tv(ret['title'], ret['premiered'])
+                ret['extra_info']['tmdb_id'] = tmdb_id
                 if tmdb_id is not None:
                     ret['tmdb'] = {}
                     ret['tmdb']['tmdb_id'] = tmdb_id
 
                     SiteTmdbTv.apply(tmdb_id, ret, apply_image=True, apply_actor_image=True)
 
+                if 'tving_episode_id' in ret['extra_info']:
+                    from lib_metadata import SiteTvingTv
+                    tving_id = SiteTvingTv.search_tv_by_episode_code('E001924532')
+                    logger.debug(tving_id)
 
         if ret is not None:
             ret['plex_is_proxy_preview'] = ModelSetting.get_bool('ktv_plex_is_proxy_preview')
