@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+
+  <nav>  
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head2('normal', '설정', true) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+  <div class="tab-content" id="nav-tabContent">
+    {{ macros.m_tab_content_start('normal', true) }}
+      {{ macros.setting_input_text_and_buttons('ktv_wavve_search', '검색', [['ktv_wavve_search_btn', '테스트']], value=arg['ktv_wavve_search'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('ktv_wavve_program', '쇼', [['ktv_wavve_program_btn', '테스트']], value=arg['ktv_wavve_program'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('ktv_wavve_episode', '에피소드', [['ktv_wavve_episode_btn', '테스트']], value=arg['ktv_wavve_episode'], desc=None) }}
+    {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+</form>
+</div><!--전체-->
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name'] }}";
+var sub = "{{arg['sub'] }}";
+var current_data = null;
+
+$(document).ready(function(){
+
+});
+
+
+$("body").on('click', '#ktv_wavve_search_btn', function(e){
+  e.preventDefault();
+  func_test('search', document.getElementById("ktv_wavve_search").value);
+});
+
+$("body").on('click', '#ktv_wavve_program_btn', function(e){
+  e.preventDefault();
+  func_test('program', document.getElementById("ktv_wavve_program").value);
+});
+
+$("body").on('click', '#ktv_wavve_episode_btn', function(e){
+  e.preventDefault();
+  func_test('episode', document.getElementById("ktv_wavve_episode").value);
+});
+
+function func_test(mode, keyword) {
+  $.ajax({
+    url: '/' + package_name + '/ajax/' + sub + '/wavve_test',
+    type: "POST", 
+    cache: false,
+    data: {keyword:keyword, mode:mode},
+    dataType: "json",
+    success: function (ret) {
+      m_modal(ret)
+    }
+  });
+}
+
+
+</script>    
+{% endblock %}
