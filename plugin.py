@@ -205,6 +205,7 @@ def basenormal(sub):
                 poster = im.crop((left, top, right, bottom))
                 poster.save(filename)
                 return send_file(filename, mimetype='image/jpeg')
+            
     except Exception as e:
         logger.debug('Exception:%s', e)
         logger.debug(traceback.format_exc())

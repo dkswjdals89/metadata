@@ -247,7 +247,7 @@ class LogicJavCensored(LogicModuleBase):
         SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
         #logger.debug(entity_actor)
         if ModelSetting.get_bool('jav_censored_use_sjva'):
-            if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].startswith('https://images-ext-'):
+            if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].find('.discordapp.') != -1:
                 MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
                 return
         
