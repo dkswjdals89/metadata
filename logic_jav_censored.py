@@ -51,6 +51,7 @@ class LogicJavCensored(LogicModuleBase):
         'jav_censored_dmm_image_mode' : '0',
         'jav_censored_dmm_cookie' : 'age_check_done=1',
         'jav_censored_actor_test_name' : '',
+        'jav_censored_dmm_small_image_to_poster' : '',
     }
 
     def __init__(self, P):
@@ -172,6 +173,8 @@ class LogicJavCensored(LogicModuleBase):
         ret = None
         if ModelSetting.get_bool('jav_censored_use_sjva'):
             ret = MetadataServerUtil.get_metadata(code)
+            if ret is not None:
+                logger.debug('Get meda info by server : %s', code)
         if ret is None:
             if code[1] == 'B':
                 from lib_metadata.site_javbus import SiteJavbus
@@ -205,10 +208,17 @@ class LogicJavCensored(LogicModuleBase):
 
     def info2(self, code, SiteClass):
         image_mode = ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=SiteClass.site_name))
-        data = SiteClass.info(
+        if SiteClass.site_name == 'dmm':
+            data = SiteClass.info(
+                code,
+                proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
+                image_mode=image_mode, small_image_to_poster_list=ModelSetting.get_list('jav_censored_dmm_small_image_to_poster', ','))
+        else:
+            data = SiteClass.info(
             code,
             proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
             image_mode=image_mode)
+
         if data['ret'] == 'success':
             ret = data['data']
             if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '':

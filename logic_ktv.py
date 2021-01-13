@@ -36,6 +36,10 @@ class LogicKtv(LogicModuleBase):
         'ktv_wavve_search' : '',
         'ktv_wavve_program' : '',
         'ktv_wavve_episode' : '',
+
+        'ktv_tving_search' : '',
+        'ktv_tving_program' : '',
+        'ktv_tving_episode' : '',
     }
 
     def __init__(self, P):
@@ -83,8 +87,27 @@ class LogicKtv(LogicModuleBase):
                         page += 1
                         if episode_data['pagecount'] == episode_data['count']:# or page == 6:
                             break
-                    
                 return jsonify(ret)
+            elif sub == 'tving_test':
+                import  framework.tving.api as Tving
+                keyword = req.form['keyword']
+                mode = req.form['mode']
+                ModelSetting.set('ktv_tving_%s' % mode, keyword)
+                if mode == 'search':
+                    ret = Tving.search_tv(keyword)
+                elif mode == 'program':
+                    ret = {}
+                    ret['program'] = Tving.get_program_programid(keyword)
+                    ret['episodes'] = []
+                    page = 1
+                    while True:
+                        episode_data = Tving.get_frequency_programid(keyword, page=page)
+                        for epi in episode_data['body']['result']:
+                            ret['episodes'].append(epi['episode'])
+                        page += 1
+                        if episode_data['body']['has_more'] == 'N':
+                            break
+                return jsonify(ret) 
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
@@ -98,7 +121,8 @@ class LogicKtv(LogicModuleBase):
         elif sub == 'info':
             return jsonify(self.info(req.args.get('code'), req.args.get('title')))
         elif sub == 'episode_info':
-            return jsonify(self.episode_info(req.args.get('code'), req.args.get('no'), req.args.get('premiered'), req.args.get('param')))
+            return jsonify(self.episode_info(req.args.get('code')))
+            #return jsonify(self.episode_info(req.args.get('code'), req.args.get('no'), req.args.get('premiered'), req.args.get('param')))
             #return jsonify(self.episode_info(req.args.get('code'), req.args.get('no'), py_urllib.unquote(req.args.get('param'))))
 
     #########################################################
@@ -106,15 +130,14 @@ class LogicKtv(LogicModuleBase):
     def search(self, keyword):
         ret = []
         #site_list = ModelSetting.get_list('jav_censored_order', ',')
-        site_list = ['daum']
+        site_list = ['daum', 'tving', 'daum']
         for idx, site in enumerate(site_list):
             from lib_metadata import SiteDaumTv 
-
             data = SiteDaumTv.search(keyword)
             if data['ret'] == 'success':
                 ret = data['data']
-           
-            return ret
+                return ret
+
 
 
             if data['ret'] == 'success':
@@ -156,14 +179,14 @@ class LogicKtv(LogicModuleBase):
                     if 'tving_episode_id' in show['extra_info']:
                         logger.debug('aaaaaaaaaa')
                         from lib_metadata import SiteTvingTv
-                        tving_id = SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
-                        logger.debug(tving_id)
+                        SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
+                        
                     elif True: #use_tving 정도
-                        logger.debug('bbbbbbbbbbbbbb')
-                        if show['studio'].lower().find('jtbc') != -1:
-                            logger.debug('cccccccccccccc')
-                            from lib_metadata import SiteTvingTv
-                            SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
+                        #logger.debug('bbbbbbbbbbbbbb')
+                        #if show['studio'].lower().find('jtbc') != -1:
+                        logger.debug('cccccccccccccc')
+                        from lib_metadata import SiteTvingTv
+                        SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
                             
 
             if show is not None:
@@ -179,16 +202,14 @@ class LogicKtv(LogicModuleBase):
 
     
     
-    def episode_info(self, code, epi_no, premiered, param):
+    def episode_info(self, code):
         try:
-            logger.debug('code : %s\nepi_no : %s\npremiered: %s\nparam : %s', code, epi_no, premiered, param)
-            params = param.split('|')
-            for param in params:
-                if param[0] == 'D':
-                    from lib_metadata import SiteDaumTv
-                    data = SiteDaumTv.episode_info(code, epi_no, premiered, param[1:])
-                    if data['ret'] == 'success':
-                        return data['data']
+            logger.debug('code : %s', code)
+            if code[1] == 'D':
+                from lib_metadata import SiteDaumTv
+                data = SiteDaumTv.episode_info(code)
+                if data['ret'] == 'success':
+                    return data['data']
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
