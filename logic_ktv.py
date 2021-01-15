@@ -32,18 +32,16 @@ from lib_metadata.server_util import MetadataServerUtil
 class LogicKtv(LogicModuleBase):
     db_default = {
         'ktv_db_version' : '1',
-        'ktv_daum_keyword' : u'나의 아저씨',
-        'ktv_plex_is_proxy_preview' : u'True',
-        'ktv_plex_landscape_to_art' : u'True',
-        'ktv_censored_plex_art_count' : u'3',
+        'ktv_use_kakaotv' : 'True',
+        'ktv_use_kakaotv_episode' : 'False',
+
+        'ktv_daum_keyword' : '',
 
         'ktv_wavve_search' : '',
         'ktv_wavve_program' : '',
-        'ktv_wavve_episode' : '',
 
         'ktv_tving_search' : '',
         'ktv_tving_program' : '',
-        'ktv_tving_episode' : '',
     }
 
     module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
@@ -67,7 +65,7 @@ class LogicKtv(LogicModuleBase):
                 keyword = req.form['keyword']
                 call = req.form['call']
                 if call == 'daum':
-                    ModelSetting.set('jav_ktv_daum_keyword', keyword)
+                    ModelSetting.set('ktv_daum_keyword', keyword)
                     ret = {}
                     ret['search'] = SiteDaumTv.search(keyword)
                     if ret['search']['ret'] == 'success':
@@ -157,7 +155,7 @@ class LogicKtv(LogicModuleBase):
                 if tmp['ret'] == 'success':
                     show = tmp['data']
 
-                if show['extra_info']['kakao_id'] is not None:
+                if show['extra_info']['kakao_id'] is not None and ModelSetting.get_bool('ktv_use_kakaotv'):
                     show['extras'] = SiteDaumTv.get_kakao_video(show['extra_info']['kakao_id'])
 
                 from lib_metadata import SiteTmdbTv
@@ -166,11 +164,9 @@ class LogicKtv(LogicModuleBase):
                 if tmdb_id is not None:
                     show['tmdb'] = {}
                     show['tmdb']['tmdb_id'] = tmdb_id
-
                     SiteTmdbTv.apply(tmdb_id, show, apply_image=True, apply_actor_image=True)
 
                 if 'tving_episode_id' in show['extra_info']:
-                    
                     SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
                 else: #use_tving 정도
                     SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
@@ -206,9 +202,10 @@ class LogicKtv(LogicModuleBase):
             logger.debug('code : %s', code)
             if code[1] == 'D':
                 from lib_metadata import SiteDaumTv
-                data = SiteDaumTv.episode_info(code)
+                data = SiteDaumTv.episode_info(code, include_kakao=ModelSetting.get_bool('ktv_use_kakaotv_episode'))
                 if data['ret'] == 'success':
                     return data['data']
+
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
