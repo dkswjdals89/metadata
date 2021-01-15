@@ -11,12 +11,16 @@ from sqlalchemy import or_, and_, func, not_, desc
 import lxml.html
 from lxml import etree as ET
 
+
 # sjva 공용
 from framework import db, scheduler, path_data, socketio, SystemModelSetting, app, py_urllib
 from framework.util import Util
 from framework.common.util import headers, get_json_with_auth_session
 from framework.common.plugin import LogicModuleBase, default_route_socketio
+
 # 패키지
+from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
+
 from .plugin import P
 logger = P.logger
 package_name = P.package_name
@@ -42,6 +46,8 @@ class LogicKtv(LogicModuleBase):
         'ktv_tving_episode' : '',
     }
 
+    module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
+
     def __init__(self, P):
         super(LogicKtv, self).__init__(P, 'setting')
         self.name = 'ktv'
@@ -61,7 +67,6 @@ class LogicKtv(LogicModuleBase):
                 keyword = req.form['keyword']
                 call = req.form['call']
                 if call == 'daum':
-                    from lib_metadata import SiteDaumTv
                     ModelSetting.set('jav_ktv_daum_keyword', keyword)
                     ret = {}
                     ret['search'] = SiteDaumTv.search(keyword)
@@ -74,8 +79,7 @@ class LogicKtv(LogicModuleBase):
                 mode = req.form['mode']
                 ModelSetting.set('ktv_wavve_%s' % mode, keyword)
                 if mode == 'search':
-                    from lib_metadata import SiteWavveTv
-                    ret = SiteWavveTv.search(keyword)
+                    ret = Wavve.search_tv(keyword)
                 elif mode == 'program':
                     ret = {}
                     ret['program'] = Wavve.vod_programs_programid(keyword)
@@ -116,8 +120,9 @@ class LogicKtv(LogicModuleBase):
     def process_api(self, sub, req):
         if sub == 'search':
             call = req.args.get('call')
+            manual = bool(req.args.get('manual'))
             if call == 'plex':
-                return jsonify(self.search(req.args.get('keyword')))
+                return jsonify(self.search(req.args.get('keyword'), manual=manual))
         elif sub == 'info':
             return jsonify(self.info(req.args.get('code'), req.args.get('title')))
         elif sub == 'episode_info':
@@ -127,73 +132,67 @@ class LogicKtv(LogicModuleBase):
 
     #########################################################
 
-    def search(self, keyword):
-        ret = []
+    def search(self, keyword, manual=False):
+        ret = {}
         #site_list = ModelSetting.get_list('jav_censored_order', ',')
-        site_list = ['daum', 'tving', 'daum']
+        site_list = ['daum', 'tving', 'wavve']
         for idx, site in enumerate(site_list):
-            from lib_metadata import SiteDaumTv 
-            data = SiteDaumTv.search(keyword)
-            if data['ret'] == 'success':
-                ret = data['data']
+            logger.debug(site)
+            site_data = self.module_map[site].search(keyword)
+            #logger.debug(data)
+
+            if site_data['ret'] == 'success':
+                ret[site] = site_data['data']
+                logger.info(u'KTV 검색어 : %s site : %s 매칭', keyword, site)
+                if manual:
+                    continue
                 return ret
-
-
-
-            if data['ret'] == 'success':
-                if idx != 0:
-                    for item in data['data']:
-                        item['score'] += -1
-                ret += data['data']
-                ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
-            if all_find:
-                continue
-            else:
-                if len(ret) > 0 and ret[0]['score'] > 95:
-                    break
         return ret
-    
 
     def info(self, code, title):
         try:
             show = None
-            if show is None:
-                if code[1] == 'D':
-                    from lib_metadata import SiteDaumTv
-                    tmp = SiteDaumTv.info(code, title)
-                    if tmp['ret'] == 'success':
-                        show = tmp['data']
+            if code[1] == 'D':
+                tmp = SiteDaumTv.info(code, title)
+                if tmp['ret'] == 'success':
+                    show = tmp['data']
 
-                    if show['extra_info']['kakao_id'] is not None:
-                        show['extras'] = SiteDaumTv.get_kakao_video(show['extra_info']['kakao_id'])
+                if show['extra_info']['kakao_id'] is not None:
+                    show['extras'] = SiteDaumTv.get_kakao_video(show['extra_info']['kakao_id'])
 
-                    from lib_metadata import SiteTmdbTv
-                    tmdb_id = SiteTmdbTv.search_tv(show['title'], show['premiered'])
-                    show['extra_info']['tmdb_id'] = tmdb_id
-                    if tmdb_id is not None:
-                        show['tmdb'] = {}
-                        show['tmdb']['tmdb_id'] = tmdb_id
+                from lib_metadata import SiteTmdbTv
+                tmdb_id = SiteTmdbTv.search_tv(show['title'], show['premiered'])
+                show['extra_info']['tmdb_id'] = tmdb_id
+                if tmdb_id is not None:
+                    show['tmdb'] = {}
+                    show['tmdb']['tmdb_id'] = tmdb_id
 
-                        SiteTmdbTv.apply(tmdb_id, show, apply_image=True, apply_actor_image=True)
+                    SiteTmdbTv.apply(tmdb_id, show, apply_image=True, apply_actor_image=True)
 
-                    if 'tving_episode_id' in show['extra_info']:
-                        logger.debug('aaaaaaaaaa')
-                        from lib_metadata import SiteTvingTv
-                        SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
-                        
-                    elif True: #use_tving 정도
-                        #logger.debug('bbbbbbbbbbbbbb')
-                        #if show['studio'].lower().find('jtbc') != -1:
-                        logger.debug('cccccccccccccc')
-                        from lib_metadata import SiteTvingTv
-                        SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
-                            
+                if 'tving_episode_id' in show['extra_info']:
+                    
+                    SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
+                else: #use_tving 정도
+                    SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
+
+                SiteWavveTv.apply_tv_by_search(show)
+
+            elif code[1] == 'V': 
+                tmp = SiteTvingTv.info(code)
+                if tmp['ret'] == 'success':
+                    show = tmp['data']
+            elif code[1] == 'W': 
+                tmp = SiteWavveTv.info(code)
+                if tmp['ret'] == 'success':
+                    show = tmp['data']
+
+            logger.info('KTV info title:%s code:%s tving:%s wavve:%s', title, code, show['extra_info']['tving_id'] if 'tving_id' in show['extra_info'] else None, show['extra_info']['wavve_id'] if 'wavve_id' in show['extra_info'] else None)
 
             if show is not None:
                 show['plex_is_proxy_preview'] = ModelSetting.get_bool('ktv_plex_is_proxy_preview')
                 show['plex_is_landscape_to_art'] = ModelSetting.get_bool('ktv_plex_landscape_to_art')
                 show['plex_art_count'] = ModelSetting.get_int('ktv_censored_plex_art_count')
-
+                show['plex_episode_art'] = ['daum', 'wavve', 'tving']
                 return show
 
         except Exception as e: 

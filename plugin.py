@@ -62,7 +62,8 @@ def initialize():
         from .logic_ktv import LogicKtv
         from .logic_jav_censored import LogicJavCensored
         from .logic_jav_censored_ama import LogicJavCensoredAma
-        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P)]
+        from .logic_ott_show import LogicOttShow
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
