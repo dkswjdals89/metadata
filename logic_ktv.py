@@ -36,6 +36,7 @@ class LogicKtv(LogicModuleBase):
         'ktv_use_kakaotv_episode' : 'False',
 
         'ktv_daum_keyword' : '',
+        'ktv_episode_info_order' : 'daum, tving, wavve',
 
         'ktv_wavve_search' : '',
         'ktv_wavve_program' : '',
@@ -185,10 +186,7 @@ class LogicKtv(LogicModuleBase):
             logger.info('KTV info title:%s code:%s tving:%s wavve:%s', title, code, show['extra_info']['tving_id'] if 'tving_id' in show['extra_info'] else None, show['extra_info']['wavve_id'] if 'wavve_id' in show['extra_info'] else None)
 
             if show is not None:
-                show['plex_is_proxy_preview'] = ModelSetting.get_bool('ktv_plex_is_proxy_preview')
-                show['plex_is_landscape_to_art'] = ModelSetting.get_bool('ktv_plex_landscape_to_art')
-                show['plex_art_count'] = ModelSetting.get_int('ktv_censored_plex_art_count')
-                show['plex_episode_art'] = ['daum', 'wavve', 'tving']
+                show['ktv_episode_info_order'] = ModelSetting.get_list('ktv_episode_info_order', ',')
                 return show
 
         except Exception as e: 
