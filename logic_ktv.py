@@ -34,9 +34,10 @@ class LogicKtv(LogicModuleBase):
         'ktv_db_version' : '1',
         'ktv_use_kakaotv' : 'True',
         'ktv_use_kakaotv_episode' : 'False',
-
-        'ktv_daum_keyword' : '',
         'ktv_episode_info_order' : 'daum, tving, wavve',
+        'ktv_use_theme' : 'True',
+        'ktv_daum_keyword' : '',
+        
 
         'ktv_wavve_search' : '',
         'ktv_wavve_program' : '',
@@ -174,10 +175,11 @@ class LogicKtv(LogicModuleBase):
 
                 SiteWavveTv.apply_tv_by_search(show)
                 #extra
-                extra = MetadataServerUtil.get_meta_extra(code)
-                if extra is not None:
-                    if 'themes' in extra:
-                        show['extra_info']['themes'] = extra['themes']
+                if ModelSetting.get_bool('ktv_use_theme'):
+                    extra = MetadataServerUtil.get_meta_extra(code)
+                    if extra is not None:
+                        if 'themes' in extra:
+                            show['extra_info']['themes'] = extra['themes']
 
             elif code[1] == 'V': 
                 tmp = SiteTvingTv.info(code)
