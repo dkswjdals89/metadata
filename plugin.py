@@ -21,18 +21,21 @@ class P(object):
     menu = {
         'main' : [package_name, u'메타데이터'],
         'sub' : [
-            ['ktv', u'국내 방송 (개발중)'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
+            ['ktv', u'국내 방송'], ['movie', u'영화 (개발중)'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
         ], 
         'category' : 'tool',
         'sub2' : {
             'ktv' : [
-                ['setting', u'기본 설정'], ['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
+                ['setting', u'설정'], ['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
+            ],
+            'movie' : [
+                ['setting', u'설정'], ['naver', '네이버'], ['daum', 'Daum'], ['tmdb', 'TMDB'], ['watcha', '왓챠'],  ['tmdb', 'TMDB'], ['wavve', '웨이브'], ['tving', '티빙'], 
             ],
             'jav_censored' : [
-                ['setting', u'기본 설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
+                ['setting', u'설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
             ],
             'jav_censored_ama' : [
-                ['setting', u'기본 설정'], ['jav321', 'Jav321'], 
+                ['setting', u'설정'], ['jav321', 'Jav321'], 
             ],
         }
     }  
@@ -63,7 +66,8 @@ def initialize():
         from .logic_jav_censored import LogicJavCensored
         from .logic_jav_censored_ama import LogicJavCensoredAma
         from .logic_ott_show import LogicOttShow
-        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P)]
+        from .logic_movie import LogicMovie
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P), LogicMovie(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 

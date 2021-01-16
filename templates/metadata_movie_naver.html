@@ -14,7 +14,8 @@
   <form id='setting' name='setting'>
   <div class="tab-content" id="nav-tabContent">
     {{ macros.m_tab_content_start('normal', true) }}
-      {{ macros.setting_input_text_and_buttons('ktv_daum_keyword', '테스트', [['ktv_daum_keyword_btn', '테스트']], value=arg['ktv_daum_keyword'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('movie_naver_test_search', '검색', [['movie_naver_test_search_btn', '테스트']], value=arg['movie_naver_test_search'], desc=['설정 - 번역 - 파파고에 apikey 사용', '검색 기능도 사용하도록 네이버에서 어플리케이션 설정 필요.']) }}
+      {{ macros.setting_input_text_and_buttons('movie_naver_test_info', '코드', [['movie_naver_test_info_btn', '테스트']], value=arg['movie_naver_test_info'], desc=None) }}
     {{ macros.m_tab_content_end() }}
   </div><!--tab-content-->
 </form>
@@ -30,18 +31,21 @@ $(document).ready(function(){
 });
 
 
-$("body").on('click', '#ktv_daum_keyword_btn', function(e){
+$("body").on('click', '#movie_naver_test_search_btn', function(e){
   e.preventDefault();
-  func_test('daum');
+  func_test('naver', 'search', document.getElementById("movie_naver_test_search").value);
+});
+$("body").on('click', '#movie_naver_test_info_btn', function(e){
+  e.preventDefault();
+  func_test('naver', 'info', document.getElementById("movie_naver_test_info").value);
 });
 
-function func_test(call) {
-  keyword = document.getElementById("ktv_daum_keyword").value
+function func_test(call, mode, param) {
   $.ajax({
     url: '/' + package_name + '/ajax/' + sub + '/test',
     type: "POST", 
     cache: false,
-    data: {keyword:keyword, call:call},
+    data: {param:param, call:call, mode:mode},
     dataType: "json",
     success: function (ret) {
       m_modal(ret)

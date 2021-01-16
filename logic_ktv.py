@@ -173,6 +173,11 @@ class LogicKtv(LogicModuleBase):
                     SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
 
                 SiteWavveTv.apply_tv_by_search(show)
+                #extra
+                extra = MetadataServerUtil.get_meta_extra(code)
+                if extra is not None:
+                    if 'themes' in extra:
+                        show['extra_info']['themes'] = extra['themes']
 
             elif code[1] == 'V': 
                 tmp = SiteTvingTv.info(code)
