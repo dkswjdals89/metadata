@@ -4,7 +4,7 @@ import os, traceback, time, json
 
 # third-party
 import requests
-from flask import Blueprint, request, send_file, redirect
+from flask import Blueprint, request, send_file, redirect, jsonify
 
 # sjva 공용
 from framework import app, path_data, check_api, py_urllib, SystemModelSetting
@@ -169,6 +169,12 @@ def baseapi(sub):
             filename = os.path.join(path_data, 'tmp', 'proxy.jpg')
             im.save(filename)
             return send_file(filename, mimetype='image/jpeg')
+        
+        elif sub == 'youtube':
+            command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('youtube_id')]
+            from system.logic_command import SystemLogicCommand
+            ret = SystemLogicCommand.execute_command_return(command).strip()
+            return jsonify({'ret':'success', 'url':ret})
         """
         elif sub == 'image_process':
             mode = request.args.get('mode')
@@ -210,10 +216,11 @@ def basenormal(sub):
                 poster = im.crop((left, top, right, bottom))
                 poster.save(filename)
                 return send_file(filename, mimetype='image/jpeg')
-            
+                    
     except Exception as e:
         logger.debug('Exception:%s', e)
         logger.debug(traceback.format_exc())
+
 
 
 

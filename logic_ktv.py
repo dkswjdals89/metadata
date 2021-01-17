@@ -36,8 +36,11 @@ class LogicKtv(LogicModuleBase):
         'ktv_use_kakaotv_episode' : 'False',
         'ktv_episode_info_order' : 'daum, tving, wavve',
         'ktv_use_theme' : 'True',
+
+        'ktv_test_search' : '',
+        'ktv_test_info' : '',
+
         'ktv_daum_keyword' : '',
-        
 
         'ktv_wavve_search' : '',
         'ktv_wavve_program' : '',
@@ -111,7 +114,21 @@ class LogicKtv(LogicModuleBase):
                         page += 1
                         if episode_data['body']['has_more'] == 'N':
                             break
-                return jsonify(ret) 
+                return jsonify(ret)
+            elif sub == 'total_test':
+                keyword = req.form['keyword']
+                mode = req.form['mode']
+                if mode == 'search':
+                    ModelSetting.set('ktv_test_search', keyword)
+                    ret = {}
+                    ret['search'] = self.search(keyword, manual=False)
+                    if 'daum' in ret['search']:
+                        ret['info'] = self.info(ret['search']['daum']['code'], ret['search']['daum']['title'])
+                    elif 'tving' in ret['search']:
+                        ret['info'] = self.info(ret['search']['tving'][0]['code'], '')
+                    elif 'wavve' in ret['search']:
+                        ret['info'] = self.info(ret['search']['wavve'][0]['code'], '')
+                return jsonify(ret)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())

@@ -74,10 +74,16 @@ class LogicMovie(LogicModuleBase):
         if sub == 'search':
             call = req.args.get('call')
             manual = bool(req.args.get('manual'))
+            try: year = int(req.args.get('year'))
+            except: year = 1900
+
+            logger.debug(req.args.get('year'))
+            logger.debug(year)
+            
             if call == 'plex':
-                return jsonify(self.search(req.args.get('keyword'), req.args.get('year'), manual=manual))
+                return jsonify(self.search(req.args.get('keyword'), year, manual=manual))
         elif sub == 'info':
-            return jsonify(self.info(req.args.get('code'), req.args.get('title')))
+            return jsonify(self.info(req.args.get('code')))
 
     #########################################################
 
@@ -110,45 +116,14 @@ class LogicMovie(LogicModuleBase):
 
     def info(self, code):
         try:
-            show = None
+            info = None
             if code[1] == 'N':
                 tmp = SiteNaverMovie.info(code)
                 if tmp['ret'] == 'success':
-                    show = tmp['data']
+                    info = tmp['data']
 
-                if show['extra_info']['kakao_id'] is not None and ModelSetting.get_bool('ktv_use_kakaotv'):
-                    show['extras'] = SiteDaumTv.get_kakao_video(show['extra_info']['kakao_id'])
+            return info                    
 
-                from lib_metadata import SiteTmdbTv
-                tmdb_id = SiteTmdbTv.search_tv(show['title'], show['premiered'])
-                show['extra_info']['tmdb_id'] = tmdb_id
-                if tmdb_id is not None:
-                    show['tmdb'] = {}
-                    show['tmdb']['tmdb_id'] = tmdb_id
-                    SiteTmdbTv.apply(tmdb_id, show, apply_image=True, apply_actor_image=True)
-
-                if 'tving_episode_id' in show['extra_info']:
-                    SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
-                else: #use_tving 정도
-                    SiteTvingTv.apply_tv_by_search(show, apply_plot=True, apply_image=True)
-
-                SiteWavveTv.apply_tv_by_search(show)
-
-                
-            elif code[1] == 'V': 
-                tmp = SiteTvingTv.info(code)
-                if tmp['ret'] == 'success':
-                    show = tmp['data']
-            elif code[1] == 'W': 
-                tmp = SiteWavveTv.info(code)
-                if tmp['ret'] == 'success':
-                    show = tmp['data']
-
-            logger.info('KTV info title:%s code:%s tving:%s wavve:%s', title, code, show['extra_info']['tving_id'] if 'tving_id' in show['extra_info'] else None, show['extra_info']['wavve_id'] if 'wavve_id' in show['extra_info'] else None)
-
-            if show is not None:
-                show['ktv_episode_info_order'] = ModelSetting.get_list('ktv_episode_info_order', ',')
-                return show
 
         except Exception as e: 
             P.logger.error('Exception:%s', e)
