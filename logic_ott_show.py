@@ -53,8 +53,12 @@ class LogicOttShow(LogicModuleBase):
             return jsonify(self.episode_info(req.args.get('code')))
             #return jsonify(self.episode_info(req.args.get('code'), req.args.get('no'), req.args.get('premiered'), req.args.get('param')))
             #return jsonify(self.episode_info(req.args.get('code'), req.args.get('no'), py_urllib.unquote(req.args.get('param'))))
-        elif sub == 'stream':
-            return jsonify(self.stream(req.args.get('code')))
+        elif sub == 'stream.m3u8':
+            ret = self.stream(req.args.get('code'))
+            if ret['site'] == 'tving':
+                return redirect(ret['url'])
+            else:
+                return jsonify(ret)
 
 
     #########################################################
@@ -71,7 +75,8 @@ class LogicOttShow(LogicModuleBase):
                 logger.info(u'KTV 검색어 : %s site : %s 매칭', keyword, site)
                 if manual:
                     continue
-                return ret
+                if site_data['data'][0]['score'] == 100:
+                    return ret
         return ret
 
     def info(self, code):
@@ -97,7 +102,6 @@ class LogicOttShow(LogicModuleBase):
                 import framework.tving.api as Tving
                 data, url = Tving.get_episode_json_default(code[2:], 'stream50')
                 return {'ret':'success', 'site':'tving', 'url':url}
-
             elif code[1] == 'W': 
                 import framework.wavve.api as Wavve
                 data = Wavve.streaming('vod', code[2:], '1080p', return_url=True)

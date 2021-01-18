@@ -175,6 +175,17 @@ def baseapi(sub):
             from system.logic_command import SystemLogicCommand
             ret = SystemLogicCommand.execute_command_return(command).strip()
             return jsonify({'ret':'success', 'url':ret})
+
+        elif sub == 'video':
+            site = request.args.get('site')
+            param = request.args.get('param')
+            if site == 'naver':
+                from lib_metadata import SiteNaverMovie
+                ret = SiteNaverMovie.get_video_url(param)
+                #return redirect(ret)
+            #return jsonify({'ret':'success', 'url':ret, 'site':site})
+            return redirect(ret)
+
         """
         elif sub == 'image_process':
             mode = request.args.get('mode')
