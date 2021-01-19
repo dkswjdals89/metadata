@@ -170,11 +170,11 @@ def baseapi(sub):
             im.save(filename)
             return send_file(filename, mimetype='image/jpeg')
         
-        elif sub == 'youtube':
-            command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('youtube_id')]
-            from system.logic_command import SystemLogicCommand
-            ret = SystemLogicCommand.execute_command_return(command).strip()
-            return jsonify({'ret':'success', 'url':ret})
+        #elif sub == 'youtube':
+        #    command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('youtube_id')]
+        #    from system.logic_command import SystemLogicCommand
+        #    ret = SystemLogicCommand.execute_command_return(command).strip()
+        #    return jsonify({'ret':'success', 'url':ret})
 
         elif sub == 'video':
             site = request.args.get('site')
@@ -182,8 +182,10 @@ def baseapi(sub):
             if site == 'naver':
                 from lib_metadata import SiteNaverMovie
                 ret = SiteNaverMovie.get_video_url(param)
-                #return redirect(ret)
-            #return jsonify({'ret':'success', 'url':ret, 'site':site})
+            elif site == 'youtube':
+                command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('param')]
+                from system.logic_command import SystemLogicCommand
+                ret = SystemLogicCommand.execute_command_return(command).strip()
             return redirect(ret)
 
         """

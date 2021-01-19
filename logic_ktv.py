@@ -174,7 +174,7 @@ class LogicKtv(LogicModuleBase):
                 if tmp['ret'] == 'success':
                     show = tmp['data']
 
-                if show['extra_info']['kakao_id'] is not None and ModelSetting.get_bool('ktv_use_kakaotv'):
+                if 'kakao_id' in show['extra_info'] and show['extra_info']['kakao_id'] is not None and ModelSetting.get_bool('ktv_use_kakaotv'):
                     show['extras'] = SiteDaumTv.get_kakao_video(show['extra_info']['kakao_id'])
 
                 from lib_metadata import SiteTmdbTv

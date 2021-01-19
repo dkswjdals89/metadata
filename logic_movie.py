@@ -129,6 +129,8 @@ class LogicMovie(LogicModuleBase):
 
         for idx, site in enumerate(site_list):
             logger.debug(site)
+            if site == 'daum':
+                continue
             if year is None:
                 year = 1900
             else:
@@ -139,7 +141,7 @@ class LogicMovie(LogicModuleBase):
             if site_data['ret'] == 'success':
                 for item in site_data['data']:
                     item['score'] -= idx
-                    logger.debug(item)
+                    #logger.debug(item)
                 ret += site_data['data']
                 if manual:
                     continue
@@ -160,6 +162,27 @@ class LogicMovie(LogicModuleBase):
                 tmp = SiteNaverMovie.info(code)
                 if tmp['ret'] == 'success':
                     info = tmp['data']
+
+                tmdb_info = None
+                if info['country'][0] == u'한국':
+                    tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
+                else:
+                    tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
+                    #tmdb_search = SiteTmdbMovie.search(info['originaltitle'], year=info['year'])
+                if tmdb_search['ret'] == 'success':
+                    logger.debug(tmdb_search['data'][0])
+                    if tmdb_search['data'][0]['score'] > 85:
+                        tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
+                        if tmdb_data['ret'] == 'success':
+                            tmdb_info = tmdb_data['data']
+                
+                if tmdb_info is not None:
+                    info['extras'] += tmdb_info['extras']
+                    self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
+                    info['actor'] = tmdb_info['actor']
+                    info['art'] += tmdb_info['art']
+
+
             elif code[1] == 'T':
                 tmp = SiteTmdbMovie.info(code)
                 if tmp['ret'] == 'success':
@@ -172,3 +195,16 @@ class LogicMovie(LogicModuleBase):
             P.logger.error(traceback.format_exc())
 
     
+
+    def change_tmdb_actor_info(self, tmdb_info, portal_info):
+        if len(portal_info) == 0:
+            return
+        for tmdb in tmdb_info:
+            logger.debug(tmdb['name'])
+            for portal in portal_info:
+                logger.debug(portal['originalname'])
+                if tmdb['name'] == portal['originalname']:
+                    tmdb['name'] = portal['name']
+                    tmdb['role'] = portal['role']
+                    break
+            
