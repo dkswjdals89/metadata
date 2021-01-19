@@ -20,7 +20,7 @@ from framework.common.plugin import LogicModuleBase, default_route_socketio
 
 # 패키지
 #from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
-from lib_metadata import SiteNaverMovie
+from lib_metadata import SiteNaverMovie, SiteTmdbMovie
 
 from .plugin import P
 logger = P.logger
@@ -33,12 +33,21 @@ from lib_metadata.server_util import MetadataServerUtil
 class LogicMovie(LogicModuleBase):
     db_default = {
         'movie_db_version' : '1',
+        'movie_first_order' : 'naver, daum, tmdb',
+        'movie_use_tmdb_image' : 'False',
+
+        'movie_total_test_search' : '',
+        'movie_total_test_info' : '',
 
         'movie_naver_test_search' : '',
         'movie_naver_test_info' : '',
+
+        'movie_tmdb_test_search' : '',
+        'movie_tmdb_test_info' : '',
+
     }
 
-    module_map = {'naver':SiteNaverMovie}
+    module_map = {'naver':SiteNaverMovie, 'tmdb':SiteTmdbMovie}
 
     def __init__(self, P):
         super(LogicMovie, self).__init__(P, 'setting')
@@ -55,15 +64,41 @@ class LogicMovie(LogicModuleBase):
         try:
             ret = {}
             if sub == 'test':
-                param = req.form['param']
+                param = req.form['param'].strip()
                 call = req.form['call']
                 mode = req.form['mode']
+                tmps = param.split('|')
+                year = 1900
+                logger.debug(param)
+                logger.debug(call)
+                logger.debug(mode)
+                ModelSetting.set('movie_%s_test_%s' % (call, mode), param)
+                if len(tmps) == 2:
+                    keyword = tmps[0].strip()
+                    try: year = int(tmps[1].strip())
+                    except: year = None
+                else:
+                    keyword = param
                 if call == 'naver':
-                    ModelSetting.set('movie_%s_test_%s' % (call, mode), param)
                     if mode == 'search':
-                        ret = SiteNaverMovie.search(param)
+                        ret = SiteNaverMovie.search(keyword, year=year)
                     elif mode == 'info':
                         ret = SiteNaverMovie.info(param)
+                elif call == 'tmdb':
+                    if mode == 'search':
+                        ret = SiteTmdbMovie.search(keyword, year=year)
+                    elif mode == 'info':
+                        ret = SiteTmdbMovie.info(param)
+                    elif mode == 'search_api':
+                        ret = SiteTmdbMovie.search_api(keyword)
+                    elif mode == 'info_api':
+                        ret = SiteTmdbMovie.info_api(param)
+                elif call == 'total':
+                    if mode == 'search':
+                        manual = (req.form['manual'] == 'manual')
+                        ret = self.search(keyword, year=year, manual=manual)
+                    elif mode == 'info':
+                        ret = self.info(param)
                 return jsonify(ret)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
@@ -89,8 +124,9 @@ class LogicMovie(LogicModuleBase):
 
     def search(self, keyword, year, manual=False):
         ret = []
-        #site_list = ModelSetting.get_list('jav_censored_order', ',')
-        site_list = ['naver']
+        site_list = ModelSetting.get_list('movie_first_order', ',')
+        #site_list = ['naver']
+
         for idx, site in enumerate(site_list):
             logger.debug(site)
             if year is None:
@@ -101,12 +137,15 @@ class LogicMovie(LogicModuleBase):
             site_data = self.module_map[site].search(keyword, year=year)
             
             if site_data['ret'] == 'success':
+                for item in site_data['data']:
+                    item['score'] -= idx
+                    logger.debug(item)
                 ret += site_data['data']
-                #logger.info(u'Movie 검색어 : %s site : %s 매칭', keyword, site)
                 if manual:
                     continue
                 else:
-                    break
+                    if len(site_data['data']) and site_data['data'][0]['score'] > 85:
+                        break
 
         ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
         return ret
@@ -121,7 +160,10 @@ class LogicMovie(LogicModuleBase):
                 tmp = SiteNaverMovie.info(code)
                 if tmp['ret'] == 'success':
                     info = tmp['data']
-
+            elif code[1] == 'T':
+                tmp = SiteTmdbMovie.info(code)
+                if tmp['ret'] == 'success':
+                    info = tmp['data']
             return info                    
 
 

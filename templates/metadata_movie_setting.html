@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+
+  <nav>  
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head2('normal', '설정', true) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+  <div class="tab-content" id="nav-tabContent">
+    {{ macros.m_tab_content_start('normal', true) }}
+      {{ macros.setting_input_text('movie_first_order', '우선순위', value=arg['movie_first_order'], desc=['1차 사이트 : naver, daum, tmdb']) }}
+      {{ macros.setting_checkbox('movie_use_tmdb_image', 'TMDB 이미지 사용', value=arg['movie_use_tmdb_image'], desc=['네이버, 다음 매칭시 TMDB 까지 매칭 후 이미지 적용']) }}
+
+      {{ macros.m_hr() }}
+      {{ macros.setting_input_text_and_buttons('movie_total_test_search', '통합 테스트 - 검색', [['movie_total_test_search_manual_btn', '수동'], ['movie_total_test_search_auto_btn', '자동']], value=arg['movie_total_test_search'], desc=['제목 | 년도']) }}
+      {{ macros.setting_input_text_and_buttons('movie_total_test_info', '통합 테스트 - 코드', [['movie_total_test_info_btn', '테스트']], value=arg['movie_total_test_info'], desc=None) }}
+
+    {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+</form>
+</div><!--전체-->
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name'] }}";
+var sub = "{{arg['sub'] }}";
+var current_data = null;
+
+$(document).ready(function(){
+});
+
+
+$("body").on('click', '#movie_total_test_search_manual_btn', function(e){
+  e.preventDefault();
+  func_test('total', 'search', document.getElementById("movie_total_test_search").value, 'manual');
+});
+
+$("body").on('click', '#movie_total_test_search_auto_btn', function(e){
+  e.preventDefault();
+  func_test('total', 'search', document.getElementById("movie_total_test_search").value, 'auto');
+});
+
+$("body").on('click', '#movie_total_test_info_btn', function(e){
+  e.preventDefault();
+  func_test('total', 'info', document.getElementById("movie_total_test_info").value, '');
+});
+
+function func_test(call, mode, param, manual) {
+  $.ajax({
+    url: '/' + package_name + '/ajax/' + sub + '/test',
+    type: "POST", 
+    cache: false,
+    data: {param:param, call:call, mode:mode, manual:manual},
+    dataType: "json",
+    success: function (ret) {
+      m_modal(ret)
+    }
+  });
+}
+
+</script>    
+{% endblock %}
