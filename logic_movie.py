@@ -169,7 +169,7 @@ class LogicMovie(LogicModuleBase):
                 else:
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
                     #tmdb_search = SiteTmdbMovie.search(info['originaltitle'], year=info['year'])
-                if tmdb_search['ret'] == 'success':
+                if tmdb_search['ret'] == 'success' and len(tmdb_search['data'])>0:
                     logger.debug(tmdb_search['data'][0])
                     if tmdb_search['data'][0]['score'] > 85:
                         tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
