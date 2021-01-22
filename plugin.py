@@ -26,7 +26,7 @@ class P(object):
         'category' : 'tool',
         'sub2' : {
             'ktv' : [
-                ['setting', u'설정'], ['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
+                ['setting', u'설정'], ['test', '테스트'], #['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
             ],
             'movie' : [
                 ['setting', u'설정'], ['test', '테스트'], #['naver', '네이버'], ['daum', 'Daum'], ['tmdb', 'TMDB'], ['watcha', '왓챠'],  ['tmdb', 'TMDB'], ['wavve', '웨이브'], ['tving', '티빙'], 

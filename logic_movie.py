@@ -20,7 +20,7 @@ from framework.common.plugin import LogicModuleBase, default_route_socketio
 
 # 패키지
 #from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
-from lib_metadata import SiteNaverMovie, SiteTmdbMovie
+from lib_metadata import SiteNaverMovie, SiteTmdbMovie, SiteWatchaMovie, SiteUtil
 
 from .plugin import P
 logger = P.logger
@@ -44,6 +44,10 @@ class LogicMovie(LogicModuleBase):
 
         'movie_tmdb_test_search' : '',
         'movie_tmdb_test_info' : '',
+
+        'movie_watcha_test_search' : '',
+        'movie_watcha_test_info' : '',
+        'movie_watcha_cookies' : '',
 
     }
 
@@ -99,6 +103,16 @@ class LogicMovie(LogicModuleBase):
                         ret = self.search(keyword, year=year, manual=manual)
                     elif mode == 'info':
                         ret = self.info(param)
+                elif call == 'watcha':
+                    if mode == 'search':
+                        ret = SiteWatchaMovie.search(keyword, year=year)
+                    elif mode == 'info':
+                        ret = SiteWatchaMovie.info(keyword)
+                    elif mode == 'search_api':
+                        ret = SiteWatchaMovie.search_api(keyword)
+                    elif mode == 'info_api':
+                        ret = SiteWatchaMovie.info_api(param)                    
+
                 return jsonify(ret)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
@@ -127,28 +141,58 @@ class LogicMovie(LogicModuleBase):
         site_list = ModelSetting.get_list('movie_first_order', ',')
         #site_list = ['naver']
 
-        for idx, site in enumerate(site_list):
-            logger.debug(site)
-            if site == 'daum':
-                continue
-            if year is None:
-                year = 1900
+        # 한글 영문 분리
+        split_index = -1
+        is_include_kor = False
+        for index, c in enumerate(keyword):
+            if ord(u'가') <= ord(c) <= ord(u'힣'):
+                is_include_kor = True
+                split_index = -1
+            elif ord('a') <= ord(c.lower()) <= ord('z'):
+                is_include_eng = True
+                if split_index == -1:
+                    split_index = index
+            elif ord('0') <= ord(c.lower()) <= ord('9') or ord(' '):
+                pass
             else:
-                try: year = int(year)
-                except: year = 1900
-            site_data = self.module_map[site].search(keyword, year=year)
-            
-            if site_data['ret'] == 'success':
-                for item in site_data['data']:
-                    item['score'] -= idx
-                    #logger.debug(item)
-                ret += site_data['data']
-                if manual:
-                    continue
-                else:
-                    if len(site_data['data']) and site_data['data'][0]['score'] > 85:
-                        break
+                split_index = -1
 
+        if is_include_kor and split_index != -1:
+            kor = keyword[:split_index].strip()
+            eng = keyword[split_index:].strip()
+        else:
+            kor = None
+            eng = None
+
+        
+        for key in [keyword, kor, eng]:
+            logger.debug('key : %s', key)
+            if key is None:
+                continue
+
+            for idx, site in enumerate(site_list):
+                logger.debug(site)
+                if site == 'daum':
+                    continue
+                if year is None:
+                    year = 1900
+                else:
+                    try: year = int(year)
+                    except: year = 1900
+                site_data = self.module_map[site].search(key, year=year)
+                
+                if site_data['ret'] == 'success':
+                    for item in site_data['data']:
+                        item['score'] -= idx
+                        #logger.debug(item)
+                    ret += site_data['data']
+                    if manual:
+                        continue
+                    else:
+                        if len(site_data['data']) and site_data['data'][0]['score'] > 85:
+                            break
+                if len(ret) > 0:
+                    break
         ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
         return ret
 
@@ -170,23 +214,62 @@ class LogicMovie(LogicModuleBase):
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
                     #tmdb_search = SiteTmdbMovie.search(info['originaltitle'], year=info['year'])
                 if tmdb_search['ret'] == 'success' and len(tmdb_search['data'])>0:
-                    logger.debug(tmdb_search['data'][0])
-                    if tmdb_search['data'][0]['score'] > 85:
+                    #logger.debug(tmdb_search['data'][0]['title'])
+                    if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
                         tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
                         if tmdb_data['ret'] == 'success':
                             tmdb_info = tmdb_data['data']
                 
                 if tmdb_info is not None:
+                    #logger.debug(json.dumps(tmdb_info, indent=4))
+                    logger.debug('tmdb_info : %s', tmdb_info['title'])
                     info['extras'] += tmdb_info['extras']
                     self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
                     info['actor'] = tmdb_info['actor']
                     info['art'] += tmdb_info['art']
-
+                    info['code_list'] += tmdb_info['code_list']
+                    if info['plot'] == '':
+                        info['plot'] = tmdb_info['plot']
+      
 
             elif code[1] == 'T':
                 tmp = SiteTmdbMovie.info(code)
                 if tmp['ret'] == 'success':
                     info = tmp['data']
+
+            watcha_info = None
+            watcha_search = SiteWatchaMovie.search(info['title'], year=info['year'])
+            
+            if watcha_search['ret'] == 'success' and len(watcha_search['data'])>0:
+                if watcha_search['data'][0]['score'] > 85:
+                    watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'])
+                    if watcha_data['ret'] == 'success':
+                        watcha_info = watcha_data['data']
+            
+            if watcha_info is not None:
+                info['review'] = watcha_info['review']
+                info['code_list'] += watcha_info['code_list']
+                info['code_list'].append(['google_search', u'영화 ' + info['title']])
+                
+                for idx, review in enumerate(info['review']):
+                    if idx >= len(info['code_list']):
+                        break
+                    if info['code_list'][idx][0] == 'naver_id':
+                        review['source'] = u'네이버'
+                        review['link'] = 'https://movie.naver.com/movie/bi/mi/basic.nhn?code=%s' % info['code_list'][idx][1]
+                    elif info['code_list'][idx][0] == 'tmdb_id':
+                        review['source'] = u'TMDB'
+                        review['link'] = 'https://www.themoviedb.org/movie/%s?language=ko' % info['code_list'][idx][1]
+                    elif info['code_list'][idx][0] == 'imdb_id':
+                        review['source'] = u'IMDB'
+                        review['link'] = 'https://www.imdb.com/title/%s/' % info['code_list'][idx][1]
+                    elif info['code_list'][idx][0] == 'watcha_id':
+                        review['source'] = u'왓챠 피디아'
+                        review['link'] = 'https://pedia.watcha.com/ko-KR/contents/%s' % info['code_list'][idx][1]
+                    elif info['code_list'][idx][0] == 'google_search':
+                        review['source'] = u'구글 검색'
+                        review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
+                info['tag'] += watcha_info['tag']
             return info                    
 
 
@@ -200,9 +283,9 @@ class LogicMovie(LogicModuleBase):
         if len(portal_info) == 0:
             return
         for tmdb in tmdb_info:
-            logger.debug(tmdb['name'])
+            #logger.debug(tmdb['name'])
             for portal in portal_info:
-                logger.debug(portal['originalname'])
+                #logger.debug(portal['originalname'])
                 if tmdb['name'] == portal['originalname']:
                     tmdb['name'] = portal['name']
                     tmdb['role'] = portal['role']

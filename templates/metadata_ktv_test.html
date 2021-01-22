@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+
+  <nav>  
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head2('normal', '설정', true) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+  <div class="tab-content" id="nav-tabContent">
+    {{ macros.m_tab_content_start('normal', true) }}
+      {{ macros.setting_input_text_and_buttons('ktv_total_test_search', '통합 테스트 - 검색', [['ktv_total_test_search_manual_btn', '수동'], ['ktv_total_test_search_auto_btn', '자동']], value=arg['ktv_total_test_search'], desc=None) }}
+      {{ macros.m_hr() }}
+
+      {{ macros.setting_input_text_and_buttons('ktv_daum_test_search', '다음 테스트', [['ktv_daum_test_search_btn', '다음 테스트']], value=arg['ktv_daum_test_search'], desc=None) }}
+      {{ macros.m_hr() }}
+
+      {{ macros.setting_input_text_and_buttons('ktv_wavve_test_search', '웨이브 검색 API', [['ktv_wavve_test_search_btn', '테스트']], value=arg['ktv_wavve_test_search'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('ktv_wavve_test_info', '웨이브 방송정보 API', [['ktv_wavve_test_info_btn', '테스트']], value=arg['ktv_wavve_test_info'], desc=None) }}
+      {{ macros.m_hr() }}
+
+      {{ macros.setting_input_text_and_buttons('ktv_tving_test_search', '티빙 검색 API', [['ktv_tving_test_search_btn', '테스트']], value=arg['ktv_tving_test_search'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('ktv_tving_test_info', '티빙 방송정보 API', [['ktv_tving_test_info_btn', '테스트']], value=arg['ktv_tving_test_info'], desc=None) }}
+    {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+</form>
+</div><!--전체-->
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name'] }}";
+var sub = "{{arg['sub'] }}";
+var current_data = null;
+
+$(document).ready(function(){
+});
+
+
+function func_test(call, mode, keyword, manual) {
+  $.ajax({
+    url: '/' + package_name + '/ajax/' + sub + '/test',
+    type: "POST", 
+    cache: false,
+    data: {call:call, keyword:keyword, mode:mode, manual:manual},
+    dataType: "json",
+    success: function (ret) {
+      m_modal(ret)
+    }
+  });
+}
+
+$("body").on('click', '#ktv_total_test_search_manual_btn', function(e){
+  e.preventDefault();
+  func_test('total', 'search', document.getElementById("ktv_total_test_search").value, 'manual');
+});
+$("body").on('click', '#ktv_total_test_search_auto_btn', function(e){
+  e.preventDefault();
+  func_test('total', 'search', document.getElementById("ktv_total_test_search").value, 'auto');
+});
+
+$("body").on('click', '#ktv_daum_test_search_btn', function(e){
+  e.preventDefault();
+  func_test('daum', 'search', document.getElementById("ktv_daum_test_search").value);
+});
+
+$("body").on('click', '#ktv_wavve_test_search_btn', function(e){
+  e.preventDefault();
+  func_test('wavve', 'search', document.getElementById("ktv_wavve_test_search").value);
+});
+
+$("body").on('click', '#ktv_wavve_test_info_btn', function(e){
+  e.preventDefault();
+  func_test('wavve', 'info', document.getElementById("ktv_wavve_test_info").value);
+});
+
+
+$("body").on('click', '#ktv_tving_test_search_btn', function(e){
+  e.preventDefault();
+  func_test('tving', 'search', document.getElementById("ktv_tving_test_search").value);
+});
+
+$("body").on('click', '#ktv_tving_test_info_btn', function(e){
+  e.preventDefault();
+  func_test('tving', 'info', document.getElementById("ktv_tving_test_info").value);
+});
+
+
+
+
+
+</script>    
+{% endblock %}

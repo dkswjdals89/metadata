@@ -37,16 +37,12 @@ class LogicKtv(LogicModuleBase):
         'ktv_episode_info_order' : 'daum, tving, wavve',
         'ktv_use_theme' : 'True',
 
-        'ktv_test_search' : '',
-        'ktv_test_info' : '',
-
-        'ktv_daum_keyword' : '',
-
-        'ktv_wavve_search' : '',
-        'ktv_wavve_program' : '',
-
-        'ktv_tving_search' : '',
-        'ktv_tving_program' : '',
+        'ktv_total_test_search' : '',
+        'ktv_daum_test_search' : '',
+        'ktv_wavve_test_search' : '',
+        'ktv_wavve_test_info' : '',
+        'ktv_tving_test_search' : '',
+        'ktv_tving_test_info' : '',
     }
 
     module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
@@ -67,72 +63,67 @@ class LogicKtv(LogicModuleBase):
     def process_ajax(self, sub, req):
         try:
             if sub == 'test':
-                keyword = req.form['keyword']
+                keyword = req.form['keyword'].strip()
                 call = req.form['call']
-                if call == 'daum':
-                    ModelSetting.set('ktv_daum_keyword', keyword)
-                    ret = {}
-                    ret['search'] = SiteDaumTv.search(keyword)
-                    if ret['search']['ret'] == 'success':
-                        ret['info'] = self.info(ret['search']['data']['code'], ret['search']['data']['title'])
-                return jsonify(ret)
-            elif sub == 'wavve_test':
-                import  framework.wavve.api as Wavve
-                keyword = req.form['keyword']
                 mode = req.form['mode']
-                ModelSetting.set('ktv_wavve_%s' % mode, keyword)
-                if mode == 'search':
-                    ret = Wavve.search_tv(keyword)
-                elif mode == 'program':
-                    ret = {}
-                    ret['program'] = Wavve.vod_programs_programid(keyword)
-                    ret['episodes'] = []
-                    page = 1
-                    while True:
-                        episode_data = Wavve.vod_program_contents_programid(keyword, page=page)
-                        ret['episodes'] += episode_data['list']
-                        page += 1
-                        if episode_data['pagecount'] == episode_data['count']:# or page == 6:
-                            break
-                return jsonify(ret)
-            elif sub == 'tving_test':
-                import  framework.tving.api as Tving
-                keyword = req.form['keyword']
-                mode = req.form['mode']
-                ModelSetting.set('ktv_tving_%s' % mode, keyword)
-                if mode == 'search':
-                    ret = Tving.search_tv(keyword)
-                elif mode == 'program':
-                    ret = {}
-                    ret['program'] = Tving.get_program_programid(keyword)
-                    ret['episodes'] = []
-                    page = 1
-                    while True:
-                        episode_data = Tving.get_frequency_programid(keyword, page=page)
-                        for epi in episode_data['body']['result']:
-                            ret['episodes'].append(epi['episode'])
-                        page += 1
-                        if episode_data['body']['has_more'] == 'N':
-                            break
-                return jsonify(ret)
-            elif sub == 'total_test':
-                keyword = req.form['keyword']
-                mode = req.form['mode']
-                if mode == 'search':
-                    ModelSetting.set('ktv_test_search', keyword)
-                    ret = {}
-                    ret['search'] = self.search(keyword, manual=False)
-                    if 'daum' in ret['search']:
-                        ret['info'] = self.info(ret['search']['daum']['code'], ret['search']['daum']['title'])
-                    elif 'tving' in ret['search']:
-                        ret['info'] = self.info(ret['search']['tving'][0]['code'], '')
-                    elif 'wavve' in ret['search']:
-                        ret['info'] = self.info(ret['search']['wavve'][0]['code'], '')
+                ModelSetting.set('ktv_%s_test_%s' % (call, mode), keyword)
+
+                if call == 'total':
+                    manual = (req.form['manual'] == 'manual')
+                    if mode == 'search':
+                        ret = {}
+                        ret['search'] = self.search(keyword, manual=manual)
+                        if 'daum' in ret['search']:
+                            ret['info'] = self.info(ret['search']['daum']['code'], ret['search']['daum']['title'])
+                        elif 'tving' in ret['search']:
+                            ret['info'] = self.info(ret['search']['tving'][0]['code'], '')
+                        elif 'wavve' in ret['search']:
+                            ret['info'] = self.info(ret['search']['wavve'][0]['code'], '')
+                elif call == 'daum':
+                    if mode == 'search':
+                        ret = {}
+                        ret['search'] = SiteDaumTv.search(keyword)
+                        if ret['search']['ret'] == 'success':
+                            ret['info'] = self.info(ret['search']['data']['code'], ret['search']['data']['title'])
+
+                elif call == 'wavve':
+                    import  framework.wavve.api as Wavve
+                    if mode == 'search':
+                        ret = Wavve.search_tv(keyword)
+                    elif mode == 'info':
+                        ret = {}
+                        ret['program'] = Wavve.vod_programs_programid(keyword)
+                        ret['episodes'] = []
+                        page = 1
+                        while True:
+                            episode_data = Wavve.vod_program_contents_programid(keyword, page=page)
+                            ret['episodes'] += episode_data['list']
+                            page += 1
+                            if episode_data['pagecount'] == episode_data['count']:# or page == 6:
+                                break
+                elif call == 'tving':
+                    import  framework.tving.api as Tving
+                    if mode == 'search':
+                        ret = Tving.search_tv(keyword)
+                    elif mode == 'info':
+                        ret = {}
+                        ret['program'] = Tving.get_program_programid(keyword)
+                        ret['episodes'] = []
+                        page = 1
+                        while True:
+                            episode_data = Tving.get_frequency_programid(keyword, page=page)
+                            for epi in episode_data['body']['result']:
+                                ret['episodes'].append(epi['episode'])
+                            page += 1
+                            if episode_data['body']['has_more'] == 'N':
+                                break
                 return jsonify(ret)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
             return jsonify({'ret':'exception', 'log':str(e)})
+        
+
 
     def process_api(self, sub, req):
         if sub == 'search':

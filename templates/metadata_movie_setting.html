@@ -9,6 +9,7 @@
   <nav>  
     {{ macros.m_tab_head_start() }}
       {{ macros.m_tab_head2('normal', '설정', true) }}
+      {{ macros.m_tab_head2('watcha', '왓챠', false) }}
     {{ macros.m_tab_head_end() }}
   </nav>
   <form id='setting' name='setting'>
@@ -16,12 +17,13 @@
     {{ macros.m_tab_content_start('normal', true) }}
       {{ macros.setting_input_text('movie_first_order', '우선순위', value=arg['movie_first_order'], desc=['1차 사이트 : naver, daum, tmdb']) }}
       {{ macros.setting_checkbox('movie_use_tmdb_image', 'TMDB 이미지 사용', value=arg['movie_use_tmdb_image'], desc=['네이버, 다음 매칭시 TMDB 까지 매칭 후 이미지 적용']) }}
+   {{ macros.m_tab_content_end() }}
 
-      {{ macros.m_hr() }}
-      {{ macros.setting_input_text_and_buttons('movie_total_test_search', '통합 테스트 - 검색', [['movie_total_test_search_manual_btn', '수동'], ['movie_total_test_search_auto_btn', '자동']], value=arg['movie_total_test_search'], desc=['제목 | 년도']) }}
-      {{ macros.setting_input_text_and_buttons('movie_total_test_info', '통합 테스트 - 코드', [['movie_total_test_info_btn', '테스트']], value=arg['movie_total_test_info'], desc=None) }}
-
+    {{ macros.m_tab_content_start('watcha', false) }}
+      {{ macros.setting_input_textarea('movie_watcha_cookies', '쿠키', value=arg['movie_watcha_cookies'], row='3', desc=None) }}
     {{ macros.m_tab_content_end() }}
+
+
   </div><!--tab-content-->
 </form>
 </div><!--전체-->
@@ -35,33 +37,6 @@ $(document).ready(function(){
 });
 
 
-$("body").on('click', '#movie_total_test_search_manual_btn', function(e){
-  e.preventDefault();
-  func_test('total', 'search', document.getElementById("movie_total_test_search").value, 'manual');
-});
-
-$("body").on('click', '#movie_total_test_search_auto_btn', function(e){
-  e.preventDefault();
-  func_test('total', 'search', document.getElementById("movie_total_test_search").value, 'auto');
-});
-
-$("body").on('click', '#movie_total_test_info_btn', function(e){
-  e.preventDefault();
-  func_test('total', 'info', document.getElementById("movie_total_test_info").value, '');
-});
-
-function func_test(call, mode, param, manual) {
-  $.ajax({
-    url: '/' + package_name + '/ajax/' + sub + '/test',
-    type: "POST", 
-    cache: false,
-    data: {param:param, call:call, mode:mode, manual:manual},
-    dataType: "json",
-    success: function (ret) {
-      m_modal(ret)
-    }
-  });
-}
 
 </script>    
 {% endblock %}
