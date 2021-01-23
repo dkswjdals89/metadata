@@ -20,7 +20,7 @@ from framework.common.plugin import LogicModuleBase, default_route_socketio
 
 # 패키지
 #from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
-from lib_metadata import SiteNaverMovie, SiteTmdbMovie, SiteWatchaMovie, SiteUtil
+from lib_metadata import SiteNaverMovie, SiteTmdbMovie, SiteWatchaMovie, SiteUtil, SiteDaumMovie
 
 from .plugin import P
 logger = P.logger
@@ -35,12 +35,18 @@ class LogicMovie(LogicModuleBase):
         'movie_db_version' : '1',
         'movie_first_order' : 'naver, daum, tmdb',
         'movie_use_tmdb_image' : 'False',
+        'movie_use_tmdb' : 'True',
+        'movie_use_watcha' : 'True',
+        'movie_use_watcha_collection_like_count' : '100',
 
         'movie_total_test_search' : '',
         'movie_total_test_info' : '',
 
         'movie_naver_test_search' : '',
         'movie_naver_test_info' : '',
+
+        'movie_daum_test_search' : '',
+        'movie_daum_test_info' : '',
 
         'movie_tmdb_test_search' : '',
         'movie_tmdb_test_info' : '',
@@ -51,7 +57,7 @@ class LogicMovie(LogicModuleBase):
 
     }
 
-    module_map = {'naver':SiteNaverMovie, 'tmdb':SiteTmdbMovie}
+    module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie}
 
     def __init__(self, P):
         super(LogicMovie, self).__init__(P, 'setting')
@@ -88,6 +94,11 @@ class LogicMovie(LogicModuleBase):
                         ret = SiteNaverMovie.search(keyword, year=year)
                     elif mode == 'info':
                         ret = SiteNaverMovie.info(param)
+                elif call == 'daum':
+                    if mode == 'search':
+                        ret = SiteDaumMovie.search(keyword, year=year)
+                    elif mode == 'info':
+                        ret = SiteDaumMovie.info(param)
                 elif call == 'tmdb':
                     if mode == 'search':
                         ret = SiteTmdbMovie.search(keyword, year=year)
@@ -129,10 +140,45 @@ class LogicMovie(LogicModuleBase):
             logger.debug(req.args.get('year'))
             logger.debug(year)
             
-            if call == 'plex':
+            if call == 'plex' or call == 'kodi':
                 return jsonify(self.search(req.args.get('keyword'), year, manual=manual))
         elif sub == 'info':
-            return jsonify(self.info(req.args.get('code')))
+            call = req.args.get('call')
+            data = self.info(req.args.get('code'))
+            if call == 'kodi':
+                data = SiteUtil.info_to_kodi(data)
+            return jsonify(data)
+        elif sub == 'stream':
+            ret = self.stream(req.args.get('code'))
+            mode = req.args.get('mode')
+            if mode == 'redirect':
+                if 'hls' in ret:
+                    return redirect(ret['hls'])
+            
+
+            #logger.debug(json.dumps(ret, indent=4))
+            return jsonify(ret)
+
+            logger.debug(ret)
+            return redirect(ret['url'])
+            import time
+            from tool_base import ToolBaseFile
+            #return ToolBaseFile.write(text, savepath)
+
+            filename = os.path.join(path_data, 'tmp', '%s.strm' % str(time.time()))
+            ToolBaseFile.write(ret['url'], filename)
+            #return send_file(filename)
+            tmp = 'https://sjva-dev.soju6jan.com/file/data/tmp/%s?apikey=0005298000' % os.path.basename(filename)
+            logger.debug(tmp)
+            return redirect(tmp)
+
+
+            if ret['site'] == 'tving':
+
+                return ret['url']
+                return redirect(ret['url'])
+            else:
+                return jsonify(ret)
 
     #########################################################
 
@@ -191,8 +237,9 @@ class LogicMovie(LogicModuleBase):
                     else:
                         if len(site_data['data']) and site_data['data'][0]['score'] > 85:
                             break
-                if len(ret) > 0:
-                    break
+            ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
+            if len(ret) > 0 and ret[0]['score'] > 85:
+                break
         ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
         return ret
 
@@ -202,11 +249,19 @@ class LogicMovie(LogicModuleBase):
     def info(self, code):
         try:
             info = None
+            is_tmdb = False
             if code[1] == 'N':
                 tmp = SiteNaverMovie.info(code)
                 if tmp['ret'] == 'success':
                     info = tmp['data']
+                
+            elif code[1] == 'T':
+                tmp = SiteTmdbMovie.info(code)
+                if tmp['ret'] == 'success':
+                    info = tmp['data']
+                is_tmdb = True
 
+            if is_tmdb == False and ModelSetting.get_bool('movie_use_tmdb'):
                 tmdb_info = None
                 if info['country'][0] == u'한국':
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
@@ -230,46 +285,42 @@ class LogicMovie(LogicModuleBase):
                     info['code_list'] += tmdb_info['code_list']
                     if info['plot'] == '':
                         info['plot'] = tmdb_info['plot']
-      
 
-            elif code[1] == 'T':
-                tmp = SiteTmdbMovie.info(code)
-                if tmp['ret'] == 'success':
-                    info = tmp['data']
 
-            watcha_info = None
-            watcha_search = SiteWatchaMovie.search(info['title'], year=info['year'])
-            
-            if watcha_search['ret'] == 'success' and len(watcha_search['data'])>0:
-                if watcha_search['data'][0]['score'] > 85:
-                    watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'])
-                    if watcha_data['ret'] == 'success':
-                        watcha_info = watcha_data['data']
-            
-            if watcha_info is not None:
-                info['review'] = watcha_info['review']
-                info['code_list'] += watcha_info['code_list']
-                info['code_list'].append(['google_search', u'영화 ' + info['title']])
+            if ModelSetting.get_bool('movie_use_watcha'):
+                watcha_info = None
+                watcha_search = SiteWatchaMovie.search(info['title'], year=info['year'])
                 
-                for idx, review in enumerate(info['review']):
-                    if idx >= len(info['code_list']):
-                        break
-                    if info['code_list'][idx][0] == 'naver_id':
-                        review['source'] = u'네이버'
-                        review['link'] = 'https://movie.naver.com/movie/bi/mi/basic.nhn?code=%s' % info['code_list'][idx][1]
-                    elif info['code_list'][idx][0] == 'tmdb_id':
-                        review['source'] = u'TMDB'
-                        review['link'] = 'https://www.themoviedb.org/movie/%s?language=ko' % info['code_list'][idx][1]
-                    elif info['code_list'][idx][0] == 'imdb_id':
-                        review['source'] = u'IMDB'
-                        review['link'] = 'https://www.imdb.com/title/%s/' % info['code_list'][idx][1]
-                    elif info['code_list'][idx][0] == 'watcha_id':
-                        review['source'] = u'왓챠 피디아'
-                        review['link'] = 'https://pedia.watcha.com/ko-KR/contents/%s' % info['code_list'][idx][1]
-                    elif info['code_list'][idx][0] == 'google_search':
-                        review['source'] = u'구글 검색'
-                        review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
-                info['tag'] += watcha_info['tag']
+                if watcha_search['ret'] == 'success' and len(watcha_search['data'])>0:
+                    if watcha_search['data'][0]['score'] > 85:
+                        watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'])
+                        if watcha_data['ret'] == 'success':
+                            watcha_info = watcha_data['data']
+                
+                if watcha_info is not None:
+                    info['review'] = watcha_info['review']
+                    info['code_list'] += watcha_info['code_list']
+                    info['code_list'].append(['google_search', u'영화 ' + info['title']])
+                    
+                    for idx, review in enumerate(info['review']):
+                        if idx >= len(info['code_list']):
+                            break
+                        if info['code_list'][idx][0] == 'naver_id':
+                            review['source'] = u'네이버'
+                            review['link'] = 'https://movie.naver.com/movie/bi/mi/basic.nhn?code=%s' % info['code_list'][idx][1]
+                        elif info['code_list'][idx][0] == 'tmdb_id':
+                            review['source'] = u'TMDB'
+                            review['link'] = 'https://www.themoviedb.org/movie/%s?language=ko' % info['code_list'][idx][1]
+                        elif info['code_list'][idx][0] == 'imdb_id':
+                            review['source'] = u'IMDB'
+                            review['link'] = 'https://www.imdb.com/title/%s/' % info['code_list'][idx][1]
+                        elif info['code_list'][idx][0] == 'watcha_id':
+                            review['source'] = u'왓챠 피디아'
+                            review['link'] = 'https://pedia.watcha.com/ko-KR/contents/%s' % info['code_list'][idx][1]
+                        elif info['code_list'][idx][0] == 'google_search':
+                            review['source'] = u'구글 검색'
+                            review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
+                    info['tag'] += watcha_info['tag']
             return info                    
 
 
@@ -290,4 +341,21 @@ class LogicMovie(LogicModuleBase):
                     tmdb['name'] = portal['name']
                     tmdb['role'] = portal['role']
                     break
-            
+
+
+    def stream(self, code):
+        try:
+            logger.debug('code : %s', code)
+            if code[1] == 'V': 
+                import framework.tving.api as Tving
+                data = Tving.get_stream_info_by_web('movie', code[2:], 'stream50')
+                #logger.debug(data)
+                return data['play_info']
+            elif code[1] == 'W': 
+                import framework.wavve.api as Wavve
+                data = {'wavve_url':Wavve.streaming2('movie', code[2:], 'FHD', return_url=True)}
+                return data
+        except Exception as e: 
+            P.logger.error('Exception:%s', e)
+            P.logger.error(traceback.format_exc())
+

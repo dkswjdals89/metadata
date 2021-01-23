@@ -23,6 +23,7 @@ package_name = P.package_name
 ModelSetting = P.ModelSetting
 
 from lib_metadata.server_util import MetadataServerUtil
+from lib_metadata import SiteUtil
 #########################################################
 
 class LogicJavCensored(LogicModuleBase):
@@ -107,12 +108,16 @@ class LogicJavCensored(LogicModuleBase):
     def process_api(self, sub, req):
         if sub == 'search':
             call = req.args.get('call')
-            if call == 'plex':
+            if call == 'plex' or call == 'kodi':
                 manual = bool(req.args.get('manual'))
                 all_find = ModelSetting.get_bool('jav_censored_plex_manual_mode') if manual else False
                 return jsonify(self.search(req.args.get('keyword'), all_find=all_find, do_trans=manual))
         elif sub == 'info':
-            return jsonify(self.info(req.args.get('code')))
+            call = req.args.get('call')
+            data = self.info(req.args.get('code'))
+            if call == 'kodi':
+                data = SiteUtil.info_to_kodi(data)
+            return jsonify(data)
 
     def process_normal(self, sub, req):
         if sub == 'nfo_download':

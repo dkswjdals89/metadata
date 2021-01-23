@@ -19,7 +19,7 @@ from framework.common.util import headers, get_json_with_auth_session
 from framework.common.plugin import LogicModuleBase, default_route_socketio
 
 # 패키지
-from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
+from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv, SiteUtil
 
 from .plugin import P
 logger = P.logger
@@ -129,10 +129,14 @@ class LogicKtv(LogicModuleBase):
         if sub == 'search':
             call = req.args.get('call')
             manual = bool(req.args.get('manual'))
-            if call == 'plex':
+            if call == 'plex' or call == 'kodi':
                 return jsonify(self.search(req.args.get('keyword'), manual=manual))
         elif sub == 'info':
-            return jsonify(self.info(req.args.get('code'), req.args.get('title')))
+            call = req.args.get('call')
+            data = self.info(req.args.get('code'), req.args.get('title'))
+            if call == 'kodi':
+                data = SiteUtil.info_to_kodi(data)
+            return jsonify(data)
         elif sub == 'episode_info':
             return jsonify(self.episode_info(req.args.get('code')))
             #return jsonify(self.episode_info(req.args.get('code'), req.args.get('no'), req.args.get('premiered'), req.args.get('param')))
