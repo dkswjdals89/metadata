@@ -20,7 +20,7 @@ from framework.common.plugin import LogicModuleBase, default_route_socketio
 
 # 패키지
 #from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
-from lib_metadata import SiteNaverMovie, SiteTmdbMovie, SiteWatchaMovie, SiteUtil, SiteDaumMovie
+from lib_metadata import SiteNaverMovie, SiteTmdbMovie, SiteWatchaMovie, SiteUtil, SiteDaumMovie, SiteTvingMovie, SiteWavveMovie
 
 from .plugin import P
 logger = P.logger
@@ -53,11 +53,15 @@ class LogicMovie(LogicModuleBase):
 
         'movie_watcha_test_search' : '',
         'movie_watcha_test_info' : '',
-        'movie_watcha_cookies' : '',
+        
+        'movie_wavve_test_search' : '',
+        'movie_wavve_test_info' : '',
 
+        'movie_tving_test_search' : '',
+        'movie_tving_test_info' : '',
     }
 
-    module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie}
+    module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie, 'watcha':SiteWatchaMovie, 'wavve':SiteWavveMovie, 'tving':SiteTvingMovie}
 
     def __init__(self, P):
         super(LogicMovie, self).__init__(P, 'setting')
@@ -89,41 +93,23 @@ class LogicMovie(LogicModuleBase):
                     except: year = None
                 else:
                     keyword = param
-                if call == 'naver':
-                    if mode == 'search':
-                        ret = SiteNaverMovie.search(keyword, year=year)
-                    elif mode == 'info':
-                        ret = SiteNaverMovie.info(param)
-                elif call == 'daum':
-                    if mode == 'search':
-                        ret = SiteDaumMovie.search(keyword, year=year)
-                    elif mode == 'info':
-                        ret = SiteDaumMovie.info(param)
-                elif call == 'tmdb':
-                    if mode == 'search':
-                        ret = SiteTmdbMovie.search(keyword, year=year)
-                    elif mode == 'info':
-                        ret = SiteTmdbMovie.info(param)
-                    elif mode == 'search_api':
-                        ret = SiteTmdbMovie.search_api(keyword)
-                    elif mode == 'info_api':
-                        ret = SiteTmdbMovie.info_api(param)
-                elif call == 'total':
+                
+                if call == 'total':
                     if mode == 'search':
                         manual = (req.form['manual'] == 'manual')
                         ret = self.search(keyword, year=year, manual=manual)
                     elif mode == 'info':
                         ret = self.info(param)
-                elif call == 'watcha':
+                else:
+                    SiteClass = self.module_map[call]
                     if mode == 'search':
-                        ret = SiteWatchaMovie.search(keyword, year=year)
+                        ret = SiteClass.search(keyword, year=year)
                     elif mode == 'info':
-                        ret = SiteWatchaMovie.info(keyword)
+                        ret = SiteClass.info(param)
                     elif mode == 'search_api':
-                        ret = SiteWatchaMovie.search_api(keyword)
+                        ret = SiteClass.search_api(keyword)
                     elif mode == 'info_api':
-                        ret = SiteWatchaMovie.info_api(param)                    
-
+                        ret = SiteClass.info_api(param)
                 return jsonify(ret)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
@@ -217,9 +203,6 @@ class LogicMovie(LogicModuleBase):
                 continue
 
             for idx, site in enumerate(site_list):
-                logger.debug(site)
-                if site == 'daum':
-                    continue
                 if year is None:
                     year = 1900
                 else:
@@ -240,7 +223,11 @@ class LogicMovie(LogicModuleBase):
             ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
             if len(ret) > 0 and ret[0]['score'] > 85:
                 break
-        ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
+
+        ret = sorted(ret, key=lambda k: k['score'], reverse=True)
+        for item in ret:
+            if item['score'] < 10:
+                item['score'] = 10
         return ret
 
 
@@ -286,7 +273,6 @@ class LogicMovie(LogicModuleBase):
                     if info['plot'] == '':
                         info['plot'] = tmdb_info['plot']
 
-
             if ModelSetting.get_bool('movie_use_watcha'):
                 watcha_info = None
                 watcha_search = SiteWatchaMovie.search(info['title'], year=info['year'])
@@ -321,6 +307,21 @@ class LogicMovie(LogicModuleBase):
                             review['source'] = u'구글 검색'
                             review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
                     info['tag'] += watcha_info['tag']
+            
+            if True:
+                try:
+                    wavve_info = None
+                    wavve_search = SiteWavveMovie.search(info['title'], year=info['year'])
+                    if wavve_search['ret'] == 'success' and len(wavve_search['data']) > 0:
+                        tmp = SiteWavveMovie.info(watcha_search['data'][0]['code'])
+                        logger.debug(json.dumps(tmp, indent=4))
+                        if SiteUtil.compare(info['title'], tmp['title']) and abs(info['year'] - tmp['year']) <= 1:
+                            wavve_info = tmp
+                    if wavve_info is not None:
+                        info['extra_info']['wavve_stream'] = wavve_info['extra_info']
+                except:
+                    logger.error('wavve search fail..')
+
             return info                    
 
 

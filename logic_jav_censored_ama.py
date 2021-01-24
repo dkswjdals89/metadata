@@ -185,7 +185,7 @@ class LogicJavCensoredAma(LogicModuleBase):
             code,
             proxy_url=ModelSetting.get('jav_censored_ama_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_ama_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
             image_mode=image_mode)
-        logger.debug(data)
+        #logger.debug(data)
 
         if data['ret'] == 'success':
             ret = data['data']
