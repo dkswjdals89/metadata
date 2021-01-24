@@ -63,6 +63,8 @@ class LogicMovie(LogicModuleBase):
 
     module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie, 'watcha':SiteWatchaMovie, 'wavve':SiteWavveMovie, 'tving':SiteTvingMovie}
 
+    module_map2 = {'N':SiteNaverMovie, 'D':SiteDaumMovie, 'T':SiteTmdbMovie, 'C':SiteWatchaMovie, 'W':SiteWavveMovie, 'V':SiteTvingMovie}
+
     def __init__(self, P):
         super(LogicMovie, self).__init__(P, 'setting')
         self.name = 'movie'
@@ -236,90 +238,92 @@ class LogicMovie(LogicModuleBase):
     def info(self, code):
         try:
             info = None
-            is_tmdb = False
-            if code[1] == 'N':
-                tmp = SiteNaverMovie.info(code)
-                if tmp['ret'] == 'success':
-                    info = tmp['data']
-                
-            elif code[1] == 'T':
-                tmp = SiteTmdbMovie.info(code)
-                if tmp['ret'] == 'success':
-                    info = tmp['data']
-                is_tmdb = True
+            SiteClass = self.module_map2[code[1]]
+            tmp = SiteClass.info(code)
+            if tmp['ret'] == 'success':
+                info = tmp['data']
 
-            if is_tmdb == False and ModelSetting.get_bool('movie_use_tmdb'):
-                tmdb_info = None
-                if info['country'][0] == u'한국':
+            if code[1] != 'T' and ModelSetting.get_bool('movie_use_tmdb'):
+                try:
+                    tmdb_info = None
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
-                else:
-                    tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
-                    #tmdb_search = SiteTmdbMovie.search(info['originaltitle'], year=info['year'])
-                if tmdb_search['ret'] == 'success' and len(tmdb_search['data'])>0:
-                    #logger.debug(tmdb_search['data'][0]['title'])
-                    if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
-                        tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
-                        if tmdb_data['ret'] == 'success':
-                            tmdb_info = tmdb_data['data']
-                
-                if tmdb_info is not None:
-                    #logger.debug(json.dumps(tmdb_info, indent=4))
-                    logger.debug('tmdb_info : %s', tmdb_info['title'])
-                    info['extras'] += tmdb_info['extras']
-                    self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
-                    info['actor'] = tmdb_info['actor']
-                    info['art'] += tmdb_info['art']
-                    info['code_list'] += tmdb_info['code_list']
-                    if info['plot'] == '':
-                        info['plot'] = tmdb_info['plot']
-
-            if ModelSetting.get_bool('movie_use_watcha'):
-                watcha_info = None
-                watcha_search = SiteWatchaMovie.search(info['title'], year=info['year'])
-                
-                if watcha_search['ret'] == 'success' and len(watcha_search['data'])>0:
-                    if watcha_search['data'][0]['score'] > 85:
-                        watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'])
-                        if watcha_data['ret'] == 'success':
-                            watcha_info = watcha_data['data']
-                
-                if watcha_info is not None:
-                    info['review'] = watcha_info['review']
-                    info['code_list'] += watcha_info['code_list']
-                    info['code_list'].append(['google_search', u'영화 ' + info['title']])
-                    
-                    for idx, review in enumerate(info['review']):
-                        if idx >= len(info['code_list']):
-                            break
-                        if info['code_list'][idx][0] == 'naver_id':
-                            review['source'] = u'네이버'
-                            review['link'] = 'https://movie.naver.com/movie/bi/mi/basic.nhn?code=%s' % info['code_list'][idx][1]
-                        elif info['code_list'][idx][0] == 'tmdb_id':
-                            review['source'] = u'TMDB'
-                            review['link'] = 'https://www.themoviedb.org/movie/%s?language=ko' % info['code_list'][idx][1]
-                        elif info['code_list'][idx][0] == 'imdb_id':
-                            review['source'] = u'IMDB'
-                            review['link'] = 'https://www.imdb.com/title/%s/' % info['code_list'][idx][1]
-                        elif info['code_list'][idx][0] == 'watcha_id':
-                            review['source'] = u'왓챠 피디아'
-                            review['link'] = 'https://pedia.watcha.com/ko-KR/contents/%s' % info['code_list'][idx][1]
-                        elif info['code_list'][idx][0] == 'google_search':
-                            review['source'] = u'구글 검색'
-                            review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
-                    info['tag'] += watcha_info['tag']
+                    if tmdb_search['ret'] == 'success' and len(tmdb_search['data'])>0:
+                        #logger.debug(tmdb_search['data'][0]['title'])
+                        if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
+                            tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
+                            if tmdb_data['ret'] == 'success':
+                                tmdb_info = tmdb_data['data']
+                            
+                    if tmdb_info is not None:
+                        logger.debug('tmdb :%s %s', tmdb_info['title'], tmdb_info['year'])  
+                        #logger.debug(json.dumps(tmdb_info, indent=4))
+                        logger.debug('tmdb_info : %s', tmdb_info['title'])
+                        info['extras'] += tmdb_info['extras']
+                        self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
+                        info['actor'] = tmdb_info['actor']
+                        info['art'] += tmdb_info['art']
+                        info['code_list'] += tmdb_info['code_list']
+                        if info['plot'] == '':
+                            info['plot'] = tmdb_info['plot']
+                except Exception as e: 
+                    logger.error('Exception:%s', e)
+                    logger.error(traceback.format_exc())
+                    logger.error('tmdb search fail..')
             
+            if ModelSetting.get_bool('movie_use_watcha'):
+                try:
+                    watcha_info = None
+                    watcha_search = SiteWatchaMovie.search(info['title'], year=info['year'])
+                    
+                    if watcha_search['ret'] == 'success' and len(watcha_search['data'])>0:
+                        if watcha_search['data'][0]['score'] > 85:
+                            watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'])
+                            if watcha_data['ret'] == 'success':
+                                watcha_info = watcha_data['data']
+                    
+                    if watcha_info is not None:
+                        info['review'] = watcha_info['review']
+                        info['code_list'] += watcha_info['code_list']
+                        info['code_list'].append(['google_search', u'영화 ' + info['title']])
+                        
+                        for idx, review in enumerate(info['review']):
+                            if idx >= len(info['code_list']):
+                                break
+                            if info['code_list'][idx][0] == 'naver_id':
+                                review['source'] = u'네이버'
+                                review['link'] = 'https://movie.naver.com/movie/bi/mi/basic.nhn?code=%s' % info['code_list'][idx][1]
+                            elif info['code_list'][idx][0] == 'tmdb_id':
+                                review['source'] = u'TMDB'
+                                review['link'] = 'https://www.themoviedb.org/movie/%s?language=ko' % info['code_list'][idx][1]
+                            elif info['code_list'][idx][0] == 'imdb_id':
+                                review['source'] = u'IMDB'
+                                review['link'] = 'https://www.imdb.com/title/%s/' % info['code_list'][idx][1]
+                            elif info['code_list'][idx][0] == 'watcha_id':
+                                review['source'] = u'왓챠 피디아'
+                                review['link'] = 'https://pedia.watcha.com/ko-KR/contents/%s' % info['code_list'][idx][1]
+                            elif info['code_list'][idx][0] == 'google_search':
+                                review['source'] = u'구글 검색'
+                                review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
+                        info['tag'] += watcha_info['tag']
+                except Exception as e: 
+                    logger.error('Exception:%s', e)
+                    logger.error(traceback.format_exc())
+                    logger.error('watcha search fail..')
+
             if True:
                 try:
                     wavve_info = None
                     wavve_search = SiteWavveMovie.search(info['title'], year=info['year'])
                     if wavve_search['ret'] == 'success' and len(wavve_search['data']) > 0:
-                        tmp = SiteWavveMovie.info(watcha_search['data'][0]['code'])
-                        logger.debug(json.dumps(tmp, indent=4))
-                        if SiteUtil.compare(info['title'], tmp['title']) and abs(info['year'] - tmp['year']) <= 1:
+                        tmp = SiteWavveMovie.info(wavve_search['data'][0]['code'])
+                        #logger.debug(json.dumps(tmp, indent=4))
+                        if SiteUtil.compare(info['title'], tmp['data']['title']) and abs(info['year'] - tmp['data']['year']) <= 1:
                             wavve_info = tmp
                     if wavve_info is not None:
-                        info['extra_info']['wavve_stream'] = wavve_info['extra_info']
-                except:
+                        info['extra_info']['wavve_stream'] = wavve_info['data']['extra_info']['wavve_stream']
+                except Exception as e: 
+                    logger.error('Exception:%s', e)
+                    logger.error(traceback.format_exc())
                     logger.error('wavve search fail..')
 
             return info                    
