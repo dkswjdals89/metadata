@@ -319,7 +319,7 @@ class LogicMovie(LogicModuleBase):
                         #logger.debug(json.dumps(tmp, indent=4))
                         if SiteUtil.compare(info['title'], tmp['data']['title']) and abs(info['year'] - tmp['data']['year']) <= 1:
                             wavve_info = tmp
-                    if wavve_info is not None:
+                    if wavve_info is not None and 'wavve_stream' in wavve_info['data']['extra_info']:
                         info['extra_info']['wavve_stream'] = wavve_info['data']['extra_info']['wavve_stream']
                 except Exception as e: 
                     logger.error('Exception:%s', e)
