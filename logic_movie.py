@@ -200,7 +200,7 @@ class LogicMovie(LogicModuleBase):
 
         
         for key in [keyword, kor, eng]:
-            logger.debug('key : %s', key)
+            logger.debug('search key : [%s] [%s]', key, year)
             if key is None:
                 continue
 
@@ -310,6 +310,7 @@ class LogicMovie(LogicModuleBase):
                     logger.error(traceback.format_exc())
                     logger.error('watcha search fail..')
 
+            #logger.debug(info['art'])
             if True:
                 try:
                     wavve_info = None
@@ -319,8 +320,29 @@ class LogicMovie(LogicModuleBase):
                         #logger.debug(json.dumps(tmp, indent=4))
                         if SiteUtil.compare(info['title'], tmp['data']['title']) and abs(info['year'] - tmp['data']['year']) <= 1:
                             wavve_info = tmp
-                    if wavve_info is not None and 'wavve_stream' in wavve_info['data']['extra_info']:
-                        info['extra_info']['wavve_stream'] = wavve_info['data']['extra_info']['wavve_stream']
+                    if wavve_info is not None:
+                        info['art'] += wavve_info['data']['art']
+                        if 'wavve_stream' in wavve_info['data']['extra_info']:
+                            info['extra_info']['wavve_stream'] = wavve_info['data']['extra_info']['wavve_stream']
+                except Exception as e: 
+                    logger.error('Exception:%s', e)
+                    logger.error(traceback.format_exc())
+                    logger.error('wavve search fail..')
+
+            if True:
+                try:
+                    tving_info = None
+                    tving_search = SiteTvingMovie.search(info['title'], year=info['year'])
+                    if tving_search['ret'] == 'success' and len(tving_search['data']) > 0:
+                        tmp = SiteTvingMovie.info(tving_search['data'][0]['code'])
+                        #logger.debug(json.dumps(tmp, indent=4))
+                        if SiteUtil.compare(info['title'], tmp['data']['title']) and abs(info['year'] - tmp['data']['year']) <= 1:
+                            tving_info = tmp
+                    if tving_info is not None:
+                        info['art'] += tving_info['data']['art']
+                        if 'tving_stream' in tving_info['data']['extra_info']:
+                            info['extra_info']['tving_stream'] = tving_info['data']['extra_info']['tving_stream']
+                        
                 except Exception as e: 
                     logger.error('Exception:%s', e)
                     logger.error(traceback.format_exc())
