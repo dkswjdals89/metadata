@@ -21,7 +21,7 @@ class P(object):
     menu = {
         'main' : [package_name, u'메타데이터'],
         'sub' : [
-            ['ktv', u'국내 방송'], ['movie', u'영화 (개발중)'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
+            ['ktv', u'국내 방송'], ['movie', u'영화'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
         ], 
         'category' : 'tool',
         'sub2' : {
