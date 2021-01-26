@@ -18,6 +18,7 @@
       {{ macros.setting_checkbox('movie_use_tmdb', 'Sub로 TMDB 사용', value=arg['movie_use_tmdb'], desc=['네이버, 다음 매칭시에도 TMDB 정보 활용.', 'Art, 배우 정보']) }}
       {{ macros.setting_checkbox('movie_use_watcha', 'Sub로 왓챠 사용', value=arg['movie_use_watcha'], desc=['리뷰, 컬렉션']) }}
       <div id="movie_use_watcha_div" class="collapse">
+        {{ macros.setting_radio('movie_use_watcha_option', '사용 범위', ['모두 사용', '리뷰만', '컬렉션만'], value=arg['movie_use_watcha_option']) }}
         {{ macros.setting_input_int('movie_use_watcha_collection_like_count', '컬렉션에 추가할 최소 좋아요 수', value=arg['movie_use_watcha_collection_like_count'], desc=None) }}
       </div>
    {{ macros.m_tab_content_end() }}

@@ -152,12 +152,13 @@ class LogicJavCensoredAma(LogicModuleBase):
                 ret = self.info2(code, SiteDmm)
         
         if ret is not None:
-            ret['plex_is_proxy_preview'] = ModelSetting.get_bool('jav_censored_plex_is_proxy_preview')
-            ret['plex_is_landscape_to_art'] = ModelSetting.get_bool('jav_censored_plex_landscape_to_art')
+            ret['plex_is_proxy_preview'] = True #ModelSetting.get_bool('jav_censored_plex_is_proxy_preview')
+            ret['plex_is_landscape_to_art'] = True #ModelSetting.get_bool('jav_censored_plex_landscape_to_art')
             ret['plex_art_count'] = ModelSetting.get_int('jav_censored_plex_art_count')
             if ret['plex_art_count'] == 0 and len(ret['thumb']) == 1:
                 ret['plex_art_count'] = 1
-            
+            art_count = ModelSetting.get_int('jav_censored_art_count')                
+            ret['fanart'] = ret['fanart'][:art_count]
             if ret['actor'] is not None:
                 for item in ret['actor']:
                     #self.process_actor(item)
@@ -175,6 +176,12 @@ class LogicJavCensoredAma(LogicModuleBase):
                 actor=ret['actor'][0]['name'] if ret['actor'] is not None and len(ret['actor']) > 0 else '',
                 tagline=ret['tagline'] if ret['tagline'] is not None else '',
             )
+            if 'tag' in ret:
+                tag_option = ModelSetting.get('jav_censored_tag_option')
+                if tag_option == '0':
+                    info['tag'] = []
+                elif tag_option == '1':
+                    info['tag'] = [ret['originaltitle'].split('-')[0]]
             return ret
 
     def info2(self, code, SiteClass):
