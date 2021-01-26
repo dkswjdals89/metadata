@@ -179,9 +179,9 @@ class LogicJavCensoredAma(LogicModuleBase):
             if 'tag' in ret:
                 tag_option = ModelSetting.get('jav_censored_tag_option')
                 if tag_option == '0':
-                    info['tag'] = []
+                    ret['tag'] = []
                 elif tag_option == '1':
-                    info['tag'] = [ret['originaltitle'].split('-')[0]]
+                    ret['tag'] = [ret['originaltitle'].split('-')[0]]
             return ret
 
     def info2(self, code, SiteClass):

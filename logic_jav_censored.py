@@ -33,7 +33,7 @@ class LogicJavCensored(LogicModuleBase):
         'jav_censored_order' : 'dmm, javbus',
         'jav_censored_title_format' : '[{title}] {tagline}',
         'jav_censored_art_count' : '0',
-        'jav_censored_tag_option' : '1',
+        'jav_censored_tag_option' : '2',
         #'jav_censored_plex_is_proxy_preview' : 'True',
         #'jav_censored_plex_landscape_to_art' : 'True',
         
@@ -217,9 +217,9 @@ class LogicJavCensored(LogicModuleBase):
             if 'tag' in ret:
                 tag_option = ModelSetting.get('jav_censored_tag_option')
                 if tag_option == '0':
-                    info['tag'] = []
+                    ret['tag'] = []
                 elif tag_option == '1':
-                    info['tag'] = [ret['originaltitle'].split('-')[0]]
+                    ret['tag'] = [ret['originaltitle'].split('-')[0]]
             return ret
 
     def info2(self, code, SiteClass):
