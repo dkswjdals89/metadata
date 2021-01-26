@@ -186,6 +186,13 @@ def baseapi(sub):
                 command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('param')]
                 from system.logic_command import SystemLogicCommand
                 ret = SystemLogicCommand.execute_command_return(command).strip()
+            elif site == 'kakao':
+                url = 'https://tv.kakao.com/katz/v2/ft/cliplink/{}/readyNplay?player=monet_html5&profile=HIGH&service=kakao_tv&section=channel&fields=seekUrl,abrVideoLocationList&startPosition=0&tid=&dteType=PC&continuousPlay=false&contentType=&{}'.format(param, int(time.time()))
+                
+                data = requests.get(url).json()
+                #logger.debug(json.dumps(data, indent=4))
+                ret = data['videoLocation']['url']
+                logger.debug(ret)
             return redirect(ret)
 
         """

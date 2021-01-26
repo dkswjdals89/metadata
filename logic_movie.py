@@ -271,6 +271,47 @@ class LogicMovie(LogicModuleBase):
                     logger.error(traceback.format_exc())
                     logger.error('tmdb search fail..')
             
+
+            if True:
+                try:
+                    wavve_info = None
+                    wavve_search = SiteWavveMovie.search(info['title'], year=info['year'])
+                    if wavve_search['ret'] == 'success' and len(wavve_search['data']) > 0:
+                        tmp = SiteWavveMovie.info(wavve_search['data'][0]['code'])['data']
+                        #logger.debug(json.dumps(tmp, indent=4))
+                        if SiteUtil.compare(info['title'], tmp['title']) and abs(info['year'] - tmp['year']) <= 1:
+                            wavve_info = tmp
+                    if wavve_info is not None:
+                        info['code_list'] += wavve_info['code_list']
+                        info['art'] += wavve_info['art']
+                        if 'wavve_stream' in wavve_info['extra_info']:
+                            info['extra_info']['wavve_stream'] = wavve_info['extra_info']['wavve_stream']
+                except Exception as e: 
+                    logger.error('Exception:%s', e)
+                    logger.error(traceback.format_exc())
+                    logger.error('wavve search fail..')
+
+            if True:
+                try:
+                    tving_info = None
+                    tving_search = SiteTvingMovie.search(info['title'], year=info['year'])
+                    if tving_search['ret'] == 'success' and len(tving_search['data']) > 0:
+                        tmp = SiteTvingMovie.info(tving_search['data'][0]['code'])['data']
+                        #logger.debug(json.dumps(tmp, indent=4))
+                        if SiteUtil.compare(info['title'], tmp['title']) and abs(info['year'] - tmp['year']) <= 1:
+                            tving_info = tmp
+                    if tving_info is not None:
+                        info['code_list'] += tving_info['code_list']
+                        info['art'] += tving_info['art']
+                        if 'tving_stream' in tving_info['extra_info']:
+                            info['extra_info']['tving_stream'] = tving_info['extra_info']['tving_stream']
+                        
+                except Exception as e: 
+                    logger.error('Exception:%s', e)
+                    logger.error(traceback.format_exc())
+                    logger.error('wavve search fail..')
+
+
             if ModelSetting.get_bool('movie_use_watcha'):
                 try:
                     movie_use_watcha_option = ModelSetting.get('movie_use_watcha_option')
@@ -324,42 +365,7 @@ class LogicMovie(LogicModuleBase):
                     logger.error('watcha search fail..')
 
             #logger.debug(info['art'])
-            if True:
-                try:
-                    wavve_info = None
-                    wavve_search = SiteWavveMovie.search(info['title'], year=info['year'])
-                    if wavve_search['ret'] == 'success' and len(wavve_search['data']) > 0:
-                        tmp = SiteWavveMovie.info(wavve_search['data'][0]['code'])
-                        #logger.debug(json.dumps(tmp, indent=4))
-                        if SiteUtil.compare(info['title'], tmp['data']['title']) and abs(info['year'] - tmp['data']['year']) <= 1:
-                            wavve_info = tmp
-                    if wavve_info is not None:
-                        info['art'] += wavve_info['data']['art']
-                        if 'wavve_stream' in wavve_info['data']['extra_info']:
-                            info['extra_info']['wavve_stream'] = wavve_info['data']['extra_info']['wavve_stream']
-                except Exception as e: 
-                    logger.error('Exception:%s', e)
-                    logger.error(traceback.format_exc())
-                    logger.error('wavve search fail..')
-
-            if True:
-                try:
-                    tving_info = None
-                    tving_search = SiteTvingMovie.search(info['title'], year=info['year'])
-                    if tving_search['ret'] == 'success' and len(tving_search['data']) > 0:
-                        tmp = SiteTvingMovie.info(tving_search['data'][0]['code'])
-                        #logger.debug(json.dumps(tmp, indent=4))
-                        if SiteUtil.compare(info['title'], tmp['data']['title']) and abs(info['year'] - tmp['data']['year']) <= 1:
-                            tving_info = tmp
-                    if tving_info is not None:
-                        info['art'] += tving_info['data']['art']
-                        if 'tving_stream' in tving_info['data']['extra_info']:
-                            info['extra_info']['tving_stream'] = tving_info['data']['extra_info']['tving_stream']
-                        
-                except Exception as e: 
-                    logger.error('Exception:%s', e)
-                    logger.error(traceback.format_exc())
-                    logger.error('wavve search fail..')
+            
 
             return info                    
 
