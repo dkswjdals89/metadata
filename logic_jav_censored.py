@@ -37,7 +37,7 @@ class LogicJavCensored(LogicModuleBase):
         #'jav_censored_plex_is_proxy_preview' : 'True',
         #'jav_censored_plex_landscape_to_art' : 'True',
         
-        'jav_censored_actor_order' : 'hentaku, avdbs',
+        'jav_censored_actor_order' : 'avdbs, hentaku',
         'jav_censored_plex_manual_mode' : 'True',
 
         'jav_censored_avdbs_use_proxy' : 'False',
