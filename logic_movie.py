@@ -146,6 +146,7 @@ class LogicMovie(LogicModuleBase):
             if mode == 'redirect':
                 if code[1] == 'W':
                     playurl = requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'].replace('chunklist5000.m3u8', '5000/chunklist.m3u8')
+                    return redirect(tmp)
                     file_content = requests.get(playurl).content
                     prefix = playurl.split('chunklist.m3u8')[0]
                     filedata = file_content.replace('0/media', prefix + '0/media')
