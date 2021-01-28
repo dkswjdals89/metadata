@@ -292,6 +292,7 @@ class LogicMovie(LogicModuleBase):
                         info['art'] += wavve_info['art']
                         if 'wavve_stream' in wavve_info['extra_info']:
                             info['extra_info']['wavve_stream'] = wavve_info['extra_info']['wavve_stream']
+                            info['extra_info']['wavve_stream']['mode'] = ModelSetting.get('movie_wavve_mode')
                 except Exception as e: 
                     logger.error('Exception:%s', e)
                     logger.error(traceback.format_exc())
