@@ -144,37 +144,22 @@ class LogicMovie(LogicModuleBase):
             ret = self.stream(code)
             mode = req.args.get('mode')
             if mode == 'redirect':
-                if code[1] == 'W': 
-                    return redirect(requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'].replace('chunklist5000.m3u8', '5000/chunklist.m3u8'))
+                if code[1] == 'W':
+                    playurl = requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'].replace('chunklist5000.m3u8', '5000/chunklist.m3u8')
+                    file_content = requests.get(playurl).content
+                    prefix = playurl.split('chunklist.m3u8')[0]
+                    filedata = file_content.replace('0/media', prefix + '0/media')
+                    filename = '%s.m3u8' % str(time.time())
+                    filepath = os.path.join(path_data, 'tmp', filename)
+                    from tool_base import ToolBaseFile
+                    ToolBaseFile.write(filedata, filepath)
+                    tmp = '{ddns}/file/data/tmp/{filename}?apikey={apikey}'.format(ddns=SystemModelSetting.get('ddns'), filename=filename, apikey=SystemModelSetting.get('auth_apikey'))
+                    
+                    return redirect(tmp)
 
                 if 'hls' in ret:
                     return redirect(ret['hls'])
             
-
-            #logger.debug(json.dumps(ret, indent=4))
-            return jsonify(ret)
-
-            logger.debug(ret)
-            return redirect(ret['url'])
-            import time
-            from tool_base import ToolBaseFile
-            #return ToolBaseFile.write(text, savepath)
-
-            filename = os.path.join(path_data, 'tmp', '%s.strm' % str(time.time()))
-            ToolBaseFile.write(ret['url'], filename)
-            #return send_file(filename)
-            tmp = 'https://sjva-dev.soju6jan.com/file/data/tmp/%s?apikey=0005298000' % os.path.basename(filename)
-            logger.debug(tmp)
-            return redirect(tmp)
-
-
-            if ret['site'] == 'tving':
-
-                return ret['url']
-                return redirect(ret['url'])
-            else:
-                return jsonify(ret)
-
     #########################################################
 
     def search(self, keyword, year, manual=False):
