@@ -60,6 +60,8 @@ class LogicMovie(LogicModuleBase):
 
         'movie_tving_test_search' : '',
         'movie_tving_test_info' : '',
+
+        'movie_wavve_mode' : '0',
     }
 
     module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie, 'watcha':SiteWatchaMovie, 'wavve':SiteWavveMovie, 'tving':SiteTvingMovie}
@@ -138,9 +140,13 @@ class LogicMovie(LogicModuleBase):
                 data = SiteUtil.info_to_kodi(data)
             return jsonify(data)
         elif sub == 'stream':
-            ret = self.stream(req.args.get('code'))
+            code = req.args.get('code')
+            ret = self.stream(code)
             mode = req.args.get('mode')
             if mode == 'redirect':
+                if code[1] == 'W': 
+                    return redirect(requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'])
+
                 if 'hls' in ret:
                     return redirect(ret['hls'])
             
