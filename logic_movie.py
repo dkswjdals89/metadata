@@ -145,7 +145,7 @@ class LogicMovie(LogicModuleBase):
             mode = req.args.get('mode')
             if mode == 'redirect':
                 if code[1] == 'W': 
-                    return redirect(requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'])
+                    return redirect(requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'].replace('chunklist5000.m3u8', '5000/chunklist.m3u8'))
 
                 if 'hls' in ret:
                     return redirect(ret['hls'])
