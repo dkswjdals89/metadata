@@ -142,7 +142,9 @@ class LogicMovie(LogicModuleBase):
             mode = req.args.get('mode')
             logger.debug(ret)
             logger.debug(mode)
+
             if mode == 'redirect':
+                """
                 if code[1] == 'W':
                     playurl = requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'].replace('chunklist5000.m3u8', '5000/chunklist.m3u8')
                     return redirect(tmp)
@@ -156,7 +158,7 @@ class LogicMovie(LogicModuleBase):
                     tmp = '{ddns}/file/data/tmp/{filename}?apikey={apikey}'.format(ddns=SystemModelSetting.get('ddns'), filename=filename, apikey=SystemModelSetting.get('auth_apikey'))
                     
                     return redirect(tmp)
-
+                """
                 if 'hls' in ret:
                     return redirect(ret['hls'])
             else:
