@@ -281,14 +281,22 @@ class LogicFtv(LogicModuleBase):
 
             else:
                 #logger.debug(json.dumps(watcha_search, indent=4))
-                first = watcha_search['data'][0]
-                code = first['seasons'][0]['info']['code'] if 'seasons' in first else first['code']
-                data = SiteWatchaTv.info(code)
-                #logger.debug(json.dumps(data, indent=4))
-                if data['ret'] == 'success':
-                    tvdb_info['title'] = first['title']
-                    watcha_info = data['data']
-                    tvdb_info['plot'] = watcha_info['plot']
+                try:
+                    first = watcha_search['data'][0]
+                    if 'seasons' in first and len(first['seasons']) > 0:
+                        code = first['seasons'][0]['info']['code']
+                    else:
+                        code = first['code']
+                    data = SiteWatchaTv.info(code)
+                    #logger.debug(json.dumps(data, indent=4))
+                    if data['ret'] == 'success':
+                        tvdb_info['title'] = first['title']
+                        watcha_info = data['data']
+                        tvdb_info['plot'] = watcha_info['plot']
+                except Exception as e: 
+                    P.logger.error('Exception:%s', e)
+                    P.logger.error(traceback.format_exc())
+
 
             logger.debug(u'FTV 리턴')
             return tvdb_info

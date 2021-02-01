@@ -240,9 +240,15 @@ class LogicMovie(LogicModuleBase):
             if code[1] != 'T' and ModelSetting.get_bool('movie_use_tmdb'):
                 try:
                     tmdb_info = None
+                    logger.debug(SiteClass)
+                    logger.debug(info['title'])
+                    logger.debug([info['title']])
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
+                    #logger.debug(json.dumps(tmdb_search, indent=4))
                     if tmdb_search['ret'] == 'success' and len(tmdb_search['data'])>0:
                         #logger.debug(tmdb_search['data'][0]['title'])
+                        #logger.debug()
+
                         if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
                             tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
                             if tmdb_data['ret'] == 'success':
