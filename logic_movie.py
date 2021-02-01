@@ -88,9 +88,6 @@ class LogicMovie(LogicModuleBase):
                 mode = req.form['mode']
                 tmps = param.split('|')
                 year = 1900
-                logger.debug(param)
-                logger.debug(call)
-                logger.debug(mode)
                 ModelSetting.set('movie_%s_test_%s' % (call, mode), param)
                 if len(tmps) == 2:
                     keyword = tmps[0].strip()
@@ -143,6 +140,8 @@ class LogicMovie(LogicModuleBase):
             code = req.args.get('code')
             ret = self.stream(code)
             mode = req.args.get('mode')
+            logger.debug(ret)
+            logger.debug(mode)
             if mode == 'redirect':
                 if code[1] == 'W':
                     playurl = requests.get(ret['wavve_url'].replace('action=dash', 'action=hls')).json()['playurl'].replace('chunklist5000.m3u8', '5000/chunklist.m3u8')
@@ -160,6 +159,8 @@ class LogicMovie(LogicModuleBase):
 
                 if 'hls' in ret:
                     return redirect(ret['hls'])
+            else:
+                return jsonify(ret)
             
     #########################################################
 
