@@ -251,9 +251,9 @@ class LogicJavCensored(LogicModuleBase):
             elif site == 'avdbs':
                 from lib_metadata.site_avdbs import SiteAvdbs
                 self.process_actor2(entity_actor, SiteAvdbs, ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
-            if entity_actor['name'] is not None:
+            if entity_actor['name'] is not None and entity_actor['name'] != '':
                 return
-        if entity_actor['name'] is None:
+        if entity_actor['name'] is None or entity_actor['name'] == '':
             entity_actor['name'] = entity_actor['originalname'] 
 
 
