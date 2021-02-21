@@ -114,7 +114,7 @@ class LogicJavCensoredAma(LogicModuleBase):
         ret = []
         site_list = ModelSetting.get_list('jav_censored_ama_order', ',')
         for idx, site in enumerate(site_list):
-            logger.debug(site)
+            #logger.debug(site)
             SiteClass = None
             if site == 'jav321':
                 from lib_metadata.site_jav321 import SiteJav321 as SiteClass
@@ -140,6 +140,7 @@ class LogicJavCensoredAma(LogicModuleBase):
     
 
     def info(self, code):
+        #logger.debug(code)
         ret = None
         if ModelSetting.get_bool('jav_censored_use_sjva'):
             ret = MetadataServerUtil.get_metadata(code)
@@ -186,13 +187,13 @@ class LogicJavCensoredAma(LogicModuleBase):
 
     def info2(self, code, SiteClass):
         ret = None
-        logger.debug('ama info2:%s %s', code, SiteClass)
+        #logger.debug('ama info2:%s %s', code, SiteClass)
         image_mode = ModelSetting.get('jav_censored_ama_{site_name}_image_mode'.format(site_name=SiteClass.site_name))
         data = SiteClass.info(
             code,
             proxy_url=ModelSetting.get('jav_censored_ama_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_ama_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
             image_mode=image_mode)
-        #logger.debug(data)
+        #logger.debug(json.dumps(data, indent=4))
 
         if data['ret'] == 'success':
             ret = data['data']
