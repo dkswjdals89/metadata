@@ -35,7 +35,7 @@ class LogicMovie(LogicModuleBase):
         'movie_db_version' : '1',
         'movie_first_order' : 'naver, daum, tmdb',
         'movie_use_tmdb_image' : 'False',
-        'movie_use_tmdb' : 'True',
+        #'movie_use_tmdb' : 'True',
         'movie_use_watcha' : 'True',
         'movie_use_watcha_option' : '0',
         'movie_use_watcha_collection_like_count' : '100',
@@ -62,6 +62,9 @@ class LogicMovie(LogicModuleBase):
         'movie_tving_test_info' : '',
 
         'movie_wavve_mode' : '0',
+
+        'movie_use_sub_tmdb' : '1', #['모두 사용', 'Daum은 사용 안함', '사용 안함']
+        'movie_rating_score' : '70',
     }
 
     module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie, 'watcha':SiteWatchaMovie, 'wavve':SiteWavveMovie, 'tving':SiteTvingMovie}
@@ -135,6 +138,8 @@ class LogicMovie(LogicModuleBase):
             data = self.info(req.args.get('code'))
             if call == 'kodi':
                 data = SiteUtil.info_to_kodi(data)
+            elif call == 'plex':
+                data['movie_rating_score'] = ModelSetting.get_int('movie_rating_score')
             return jsonify(data)
         elif sub == 'stream':
             code = req.args.get('code')
@@ -243,7 +248,9 @@ class LogicMovie(LogicModuleBase):
                 logger.error('title empty.. change meta site....')
                 return
 
-            if code[1] != 'T' and ModelSetting.get_bool('movie_use_tmdb'):
+            #'movie_use_sub_tmdb' : '0' #['모두 사용', 'Daum은 사용 안함', '사용 안함']
+            movie_use_sub_tmdb = ModelSetting.get('movie_use_sub_tmdb')
+            if code[1] != 'T' and (movie_use_sub_tmdb == '0' or (movie_use_sub_tmdb == '1' and code[1] != 'D')):
                 try:
                     tmdb_info = None
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
@@ -306,10 +313,12 @@ class LogicMovie(LogicModuleBase):
                     tving_info = None
                     tving_search = SiteTvingMovie.search(info['title'], year=info['year'])
                     if tving_search['ret'] == 'success' and len(tving_search['data']) > 0:
-                        tmp = SiteTvingMovie.info(tving_search['data'][0]['code'])['data']
+                        tmp = SiteTvingMovie.info(tving_search['data'][0]['code'])
                         #logger.debug(json.dumps(tmp, indent=4))
-                        if SiteUtil.compare(info['title'], tmp['title']) and abs(info['year'] - tmp['year']) <= 1:
-                            tving_info = tmp
+                        if tmp['ret'] == 'success':
+                            tmp = tmp['data']
+                            if SiteUtil.compare(info['title'], tmp['title']) and abs(info['year'] - tmp['year']) <= 1:
+                                tving_info = tmp
                     if tving_info is not None:
                         info['code_list'] += tving_info['code_list']
                         info['art'] += tving_info['art']
@@ -319,9 +328,8 @@ class LogicMovie(LogicModuleBase):
                 except Exception as e: 
                     logger.error('Exception:%s', e)
                     logger.error(traceback.format_exc())
-                    logger.error('wavve search fail..')
-
-
+                    logger.error('tving search fail..')
+            
             if ModelSetting.get_bool('movie_use_watcha'):
                 try:
                     movie_use_watcha_option = ModelSetting.get('movie_use_watcha_option')
@@ -374,9 +382,7 @@ class LogicMovie(LogicModuleBase):
                     logger.error(traceback.format_exc())
                     logger.error('watcha search fail..')
 
-            #logger.debug(info['art'])
             
-
             return info                    
 
 
