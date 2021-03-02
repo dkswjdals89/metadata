@@ -39,6 +39,7 @@ class LogicKtv(LogicModuleBase):
 
         'ktv_total_test_search' : '',
         'ktv_daum_test_search' : '',
+        'ktv_daum_test_episode' : '',
         'ktv_wavve_test_search' : '',
         'ktv_wavve_test_info' : '',
         'ktv_tving_test_search' : '',
@@ -85,7 +86,9 @@ class LogicKtv(LogicModuleBase):
                         ret['search'] = SiteDaumTv.search(keyword)
                         if ret['search']['ret'] == 'success':
                             ret['info'] = self.info(ret['search']['data']['code'], ret['search']['data']['title'])
-
+                    elif mode == 'episode':
+                        ret = {}
+                        ret['episode'] = self.episode_info(keyword)
                 elif call == 'wavve':
                     import  framework.wavve.api as Wavve
                     if mode == 'search':
