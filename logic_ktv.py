@@ -216,7 +216,6 @@ class LogicKtv(LogicModuleBase):
     
     def episode_info(self, code):
         try:
-            logger.debug('code : %s', code)
             if code[1] == 'D':
                 from lib_metadata import SiteDaumTv
                 data = SiteDaumTv.episode_info(code, include_kakao=ModelSetting.get_bool('ktv_use_kakaotv_episode'))
