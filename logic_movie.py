@@ -338,7 +338,7 @@ class LogicMovie(LogicModuleBase):
                     
                     if watcha_search['ret'] == 'success' and len(watcha_search['data'])>0:
                         if watcha_search['data'][0]['score'] > 85:
-                            watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'])
+                            watcha_data = SiteWatchaMovie.info(watcha_search['data'][0]['code'], like_count=ModelSetting.get_int('movie_use_watcha_collection_like_count'))
                             if watcha_data['ret'] == 'success':
                                 watcha_info = watcha_data['data']
                     
@@ -375,7 +375,7 @@ class LogicMovie(LogicModuleBase):
                                 elif info['code_list'][idx][0] == 'google_search':
                                     review['source'] = u'구글 검색'
                                     review['link'] = 'https://www.google.com/search?q=%s' % info['code_list'][idx][1]
-                        if movie_use_watcha_option in ['0', '2']:
+                        if movie_use_watcha_option in ['0', '2']: 
                             info['tag'] += watcha_info['tag']
                 except Exception as e: 
                     logger.error('Exception:%s', e)
