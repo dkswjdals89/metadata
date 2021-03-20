@@ -10,7 +10,7 @@ from flask import request, render_template, jsonify, redirect, Response, send_fi
 from sqlalchemy import or_, and_, func, not_, desc
 import lxml.html
 from lxml import etree as ET
-
+from collections import OrderedDict
 
 # sjva 공용
 from framework import db, scheduler, path_data, socketio, SystemModelSetting, app, py_urllib
@@ -58,6 +58,8 @@ class LogicFtv(LogicModuleBase):
         
         'ftv_translate_option' : '1',
         'ftv_use_theme' : 'True',
+        'ftv_option_actor' : '0', # tmdb 이미지 유지후 매칭된 배우만 한글적용, 국내 사이트 정보도 전체 대체, 
+
     }
 
     module_map = {'daum':SiteDaumTv, 'tvdb':SiteTvdbTv, 'tmdb':SiteTmdbTv, 'watcha':SiteWatchaTv, 'tmdb':SiteTmdbFtv}
@@ -381,13 +383,11 @@ class LogicFtv(LogicModuleBase):
 
 
             logger.debug('탐색 : %s', daum_list)
-            daum_actor_list = {}
+            daum_actor_list = OrderedDict()
             for daum_one_of_list in daum_list:
-                #season_no += 1
-                #daum_season_info = SiteDaumTv.info(season['code'], season['title'])
-                logger.debug('222222222222')
-                logger.debug(daum_one_of_list[0])
-                logger.debug(daum_one_of_list[1])
+                #logger.debug('222222222222')
+                #logger.debug(daum_one_of_list[0])
+                #logger.debug(daum_one_of_list[1])
                 daum_season_info = SiteDaumTv.info(daum_one_of_list[0], daum_one_of_list[1])
                 
                 if daum_season_info['ret'] == 'success':
@@ -405,39 +405,51 @@ class LogicFtv(LogicModuleBase):
             # end of each season
             #logger.debug(daum_actor_list)
 
-            for key, value in daum_actor_list.items():
-                tmp = SiteDaumTv.get_actor_eng_name(key)
-                if tmp is not None:
-                    value['eng_name'] = tmp 
-                    logger.debug('[%s] [%s]', key, value['eng_name'])
-                else:
-                    value['eng_name'] = None
-
-            for actor in data['actor']:
-                actor['is_kor_name'] = False
+            option_actor = ModelSetting.get('ftv_option_actor')
+            if option_actor == '1': # daum 대체
+                data['actor'] = []
                 for key, value in daum_actor_list.items():
-                    if value['eng_name'] is None:
-                        continue
-                    for tmp_name in value['eng_name']:
-                        if actor['name_original'].lower().replace(' ', '') == tmp_name.lower().replace(' ', ''):
-                            actor['name'] = actor['name_ko'] = value['name']
-                            actor['role'] = value['role']
-                            actor['is_kor_name']= True
-                            del daum_actor_list[key]
+                    data['actor'].append({'name':value['name'], 'role':value['role'], 'image':value['thumb']})
+            else:
+                for key, value in daum_actor_list.items():
+                    tmp = SiteDaumTv.get_actor_eng_name(key)
+                    if tmp is not None:
+                        value['eng_name'] = tmp 
+                        logger.debug('[%s] [%s]', key, value['eng_name'])
+                    else:
+                        value['eng_name'] = None
+
+                for actor in data['actor']:
+                    actor['is_kor_name'] = False
+                    for key, value in daum_actor_list.items():
+                        if value['eng_name'] is None:
+                            continue
+                        for tmp_name in value['eng_name']:
+                            if actor['name_original'].lower().replace(' ', '') == tmp_name.lower().replace(' ', ''):
+                                actor['name'] = actor['name_ko'] = value['name']
+                                actor['role'] = value['role']
+                                actor['is_kor_name']= True
+                                del daum_actor_list[key]
+                                break
+                        if actor['is_kor_name']:
                             break
-                    if actor['is_kor_name']:
-                        break
-                actor['role'] = actor['role'].replace('&#39;', '\"')
-
-            """
-            for key, value in daum_actor_list.items():
-                logger.debug('22 [%s] [%s]', key, value['eng_name'])
-                value['image'] = value['thumb']
-                del value['eng_name']
-                del value['thumb']
-                data['actor'].append(value)
-            """
-
+                    actor['role'] = actor['role'].replace('&#39;', '\"')
+                if option_actor == '2' or option_actor == '3':
+                    tmp1 = []
+                    tmp2 = []
+                    for actor in data['actor']:
+                        if actor['is_kor_name']:
+                            tmp1.append(actor)
+                        else:
+                            tmp2.append(actor)
+                    data['actor'] = tmp1 + tmp2
+                if option_actor == '3':
+                    for key, value in daum_actor_list.items():
+                        logger.debug('22 [%s] [%s]', key, value['eng_name'])
+                        value['image'] = value['thumb']
+                        del value['eng_name']
+                        del value['thumb']
+                        data['actor'].append(value)
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
