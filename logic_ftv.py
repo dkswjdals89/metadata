@@ -161,8 +161,6 @@ class LogicFtv(LogicModuleBase):
                 #logger.debug(json.dumps(watcha_ret, indent=4))
                 en_keyword = watcha_ret['data'][0]['title_en']
                 logger.debug(en_keyword)
-                logger.debug(en_keyword)
-                logger.debug(en_keyword)
                 if en_keyword is not None:
                     tmdb_ret = SiteTmdbFtv.search(en_keyword, year=year)
                     #logger.debug(json.dumps(tmdb_ret, indent=4))
@@ -422,10 +420,20 @@ class LogicFtv(LogicModuleBase):
                 for actor in data['actor']:
                     actor['is_kor_name'] = False
                     for key, value in daum_actor_list.items():
+                        # tmdb에 한글이름 누군가 등록한 상태. 이 이름과 daum이름이 같으면 롤도 업데이트
+                        # 예 : 바이킹스 구스타프 스가스가드
+                        if actor['name_ko'] != '' and actor['name_ko'].replace(' ', '') == value['name'].replace(' ', ''):
+                            actor['name'] = actor['name_ko']
+                            actor['role'] = value['role']
+                            actor['is_kor_name']= True
+                            del daum_actor_list[key]
+                            break
+
                         if value['eng_name'] is None:
                             continue
+
                         for tmp_name in value['eng_name']:
-                            if actor['name_original'].lower().replace(' ', '') == tmp_name.lower().replace(' ', ''):
+                            if (actor['name_original'].lower().replace(' ', '') == tmp_name.lower().replace(' ', '')):
                                 actor['name'] = actor['name_ko'] = value['name']
                                 actor['role'] = value['role']
                                 actor['is_kor_name']= True
