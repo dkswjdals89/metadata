@@ -184,8 +184,8 @@ class LogicFtv(LogicModuleBase):
                     if tmdb_info['ret'] != 'success':
                         return
                     data = tmdb_info['data']
-                    if ModelSetting.get_bool('ftv_use_meta_server'):
-                        self.info_use_metaserver(data)
+                    #if ModelSetting.get_bool('ftv_use_meta_server'):
+                    #    self.info_use_metaserver(data)
 
                     if ModelSetting.get_bool('ftv_use_extra_match'):
                         self.info_extra_match(data)
