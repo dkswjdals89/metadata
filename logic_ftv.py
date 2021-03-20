@@ -59,6 +59,7 @@ class LogicFtv(LogicModuleBase):
         'ftv_translate_option' : '1',
         'ftv_use_theme' : 'True',
         'ftv_option_actor' : '0', # tmdb 이미지 유지후 매칭된 배우만 한글적용, 국내 사이트 정보도 전체 대체, 
+        'ftv_actor_trans' : 'False',
 
     }
 
@@ -188,7 +189,9 @@ class LogicFtv(LogicModuleBase):
 
                     if ModelSetting.get_bool('ftv_use_extra_match'):
                         self.info_extra_match(data)
+                    
                     data['use_theme'] = ModelSetting.get_bool('ftv_use_theme')
+                    self.process_trans('show', data)
                     self.set_cache('my', code, data)
                     return data
             elif len(tmp) == 2:
@@ -199,13 +202,13 @@ class LogicFtv(LogicModuleBase):
                     data = tmdb_info['data']
                     if ModelSetting.get_bool('ftv_use_extra_match') and ModelSetting.get_bool('ftv_use_extra_season'):
                         self.info_extra_season(data)
-                    self.process_trans(data)
+                    self.process_trans('season', data)
                     return data
         except Exception as e: 
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
 
-    def process_trans(self, data):
+    def process_trans(self, data_type, data):
         mode = ModelSetting.get('ftv_translate_option')
         if mode == '0':
             return data
@@ -214,22 +217,28 @@ class LogicFtv(LogicModuleBase):
         elif mode == '2':
             function = SystemLogicTrans.trans_papago
 
-        for key, tmdb_epi in data['episodes'].items():
-            try:
-                if tmdb_epi['is_title_kor'] == False:
-                    tmdb_epi['title'] = function(tmdb_epi['title'], source='en')
-                if tmdb_epi['is_plot_kor'] == False:
-                    tmdb_epi['plot'] = function(tmdb_epi['plot'], source='en')
-            except:
-                pass
+        if data_type == 'show':
+            if data['is_plot_kor'] == False:
+                data['is_plot_kor'] = True
+                data['plot'] = function(data['plot'], source='en')
+            if ModelSetting.get_bool('ftv_actor_trans'):
+                for actor in data['actor']:
+                    #logger.debug(actor)
+                    if 'is_kor_name' in actor and actor['is_kor_name'] == False:
+                        actor['name'] = function(actor['name_original'], source='en')
+                        actor['role'] = function(actor['role'], source='en')
+
+        if data_type == 'season':
+            for key, tmdb_epi in data['episodes'].items():
+                try:
+                    if tmdb_epi['is_title_kor'] == False:
+                        tmdb_epi['title'] = function(tmdb_epi['title'], source='en')
+                    if tmdb_epi['is_plot_kor'] == False:
+                        tmdb_epi['plot'] = function(tmdb_epi['plot'], source='en')
+                except:
+                    pass
         return data
 
-
-    def info_use_metaserver(self, data, season_no=-1):
-        if season_no == -1:
-            pass
-        else:
-            pass
 
     
         
@@ -389,8 +398,9 @@ class LogicFtv(LogicModuleBase):
                 daum_season_info = SiteDaumTv.info(daum_one_of_list[0], daum_one_of_list[1])
                 if daum_season_info['ret'] == 'success':
                     daum_season_info = daum_season_info['data']
-                if data['plot'] == '': #화이트퀸
+                if data['is_plot_kor'] == False: #화이트퀸
                     data['plot'] = daum_season_info['plot']
+                    data['is_plot_kor'] = True
                 for actor in daum_season_info['actor']:
                     if actor['name'] not in daum_actor_list:
                         daum_actor_list[actor['name']] = actor
