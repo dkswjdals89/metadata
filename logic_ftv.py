@@ -336,7 +336,7 @@ class LogicFtv(LogicModuleBase):
 
         for key, tmdb_epi in tmdb_info['episodes'].items():
             if int(key) in daum_episodes:
-                logger.debug('apply_season_info_by_daum..')
+                #logger.debug('apply_season_info_by_daum..')
                 daum_epi = SiteDaumTv.episode_info(daum_episodes[int(key)]['daum']['code'], is_ktv=False)['data']
                 tmdb_epi['title'] = daum_epi['title'] if daum_epi['title'] != '' else tmdb_epi['title']
                 if daum_epi['title'] != '':
@@ -389,10 +389,10 @@ class LogicFtv(LogicModuleBase):
                 #logger.debug(daum_one_of_list[0])
                 #logger.debug(daum_one_of_list[1])
                 daum_season_info = SiteDaumTv.info(daum_one_of_list[0], daum_one_of_list[1])
-                
                 if daum_season_info['ret'] == 'success':
                     daum_season_info = daum_season_info['data']
-
+                if data['plot'] == '': #화이트퀸
+                    data['plot'] = daum_season_info['plot']
                 for actor in daum_season_info['actor']:
                     if actor['name'] not in daum_actor_list:
                         daum_actor_list[actor['name']] = actor
