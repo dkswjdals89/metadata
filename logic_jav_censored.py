@@ -264,7 +264,8 @@ class LogicJavCensored(LogicModuleBase):
         
         if ModelSetting.get_bool('jav_censored_use_sjva'):
             #logger.debug('A' + SiteClass.site_char + entity_actor['originalname'])
-            data = MetadataServerUtil.get_metadata('A' + SiteClass.site_char + entity_actor['originalname'])
+            code = u'A%s%s' % (SiteClass.site_char, entity_actor['originalname'])
+            data = MetadataServerUtil.get_metadata(code)
             if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
                 logger.info('Get actor info by server : %s %s', entity_actor['originalname'], SiteClass)
                 entity_actor['name'] = data['name']
