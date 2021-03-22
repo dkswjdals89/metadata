@@ -45,7 +45,6 @@ class LogicJavCensoredAma(LogicModuleBase):
         'jav_censored_plex_landscape_to_art' : 'True',
         'jav_censored_plex_art_count' : '0',
         'jav_censored_actor_order' : 'javdbs, hentaku',
-        'jav_censored_plex_manual_mode' : 'True',
 
         'jav_censored_avdbs_use_proxy' : 'False',
         'jav_censored_avdbs_proxy_url' : '',

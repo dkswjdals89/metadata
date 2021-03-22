@@ -38,7 +38,6 @@ class LogicJavCensored(LogicModuleBase):
         #'jav_censored_plex_landscape_to_art' : 'True',
         
         'jav_censored_actor_order' : 'avdbs, hentaku',
-        'jav_censored_plex_manual_mode' : 'True',
 
         'jav_censored_avdbs_use_proxy' : 'False',
         'jav_censored_avdbs_proxy_url' : '',
@@ -77,7 +76,7 @@ class LogicJavCensored(LogicModuleBase):
                     from lib_metadata.site_javbus import SiteJavbus
                     ModelSetting.set('jav_censored_javbus_code', code)
                     ret = {}
-                    ret['search'] = SiteJavbus.search(code, proxy_url=ModelSetting.get('jav_censored_javbus_proxy_url') if ModelSetting.get_bool('jav_censored_javbus_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_javbus_image_mode'))
+                    ret['search'] = SiteJavbus.search(code, proxy_url=ModelSetting.get('jav_censored_javbus_proxy_url') if ModelSetting.get_bool('jav_censored_javbus_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_javbus_image_mode'), manual=False)
                     if ret['search']['ret'] == 'success':
                         if len(ret['search']['ret']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
@@ -112,8 +111,7 @@ class LogicJavCensored(LogicModuleBase):
             call = req.args.get('call')
             if call == 'plex' or call == 'kodi':
                 manual = bool(req.args.get('manual'))
-                all_find = ModelSetting.get_bool('jav_censored_plex_manual_mode') if manual else False
-                return jsonify(self.search(req.args.get('keyword'), all_find=all_find, do_trans=manual))
+                return jsonify(self.search(req.args.get('keyword'), manual=manual))
         elif sub == 'info':
             call = req.args.get('call')
             data = self.info(req.args.get('code'))
@@ -148,7 +146,8 @@ class LogicJavCensored(LogicModuleBase):
     #########################################################
 
 
-    def search(self, keyword, all_find=False, do_trans=True):
+    def search(self, keyword, manual=False):
+        do_trans = manual
         ret = []
         site_list = ModelSetting.get_list('jav_censored_order', ',')
         for idx, site in enumerate(site_list):
@@ -168,7 +167,7 @@ class LogicJavCensored(LogicModuleBase):
                         item['score'] += -1
                 ret += data['data']
                 ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
-            if all_find:
+            if manual:
                 continue
             else:
                 if len(ret) > 0 and ret[0]['score'] > 95:
