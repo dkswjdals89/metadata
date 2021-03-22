@@ -135,7 +135,7 @@ def baseapi(sub):
             image_url = py_urllib.unquote_plus(request.args.get('url'))
             proxy_url = request.args.get('proxy_url')
             if proxy_url is not None:
-                proxy_url = py_urllib.unquote_plus()
+                proxy_url = py_urllib.unquote_plus(proxy_url)
 
             logger.debug('image_url : %s', image_url)
             #2020-09-21 핸드쉐이크 에러

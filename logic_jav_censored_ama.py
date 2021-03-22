@@ -79,7 +79,7 @@ class LogicJavCensoredAma(LogicModuleBase):
                     from lib_metadata.site_jav321 import SiteJav321
                     ModelSetting.set('jav_censored_ama_jav321_code', code)
                     ret = {}
-                    ret['search'] = SiteJav321.search(code, proxy_url=ModelSetting.get('jav_censored_ama_jav321_proxy_url') if ModelSetting.get_bool('jav_censored_ama_jav321_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_ama_jav321_image_mode'))
+                    ret['search'] = SiteJav321.search(code, proxy_url=ModelSetting.get('jav_censored_ama_jav321_proxy_url') if ModelSetting.get_bool('jav_censored_ama_jav321_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_ama_jav321_image_mode'), manual=False)
                     if ret['search']['ret'] == 'success':
                         if len(ret['search']['ret']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
