@@ -109,7 +109,7 @@ class LogicJavCensoredAma(LogicModuleBase):
     #########################################################
 
 
-    def search(self, keyword, all_find=False, do_trans=True):
+    def search(self, keyword, manual=False):
         ret = []
         site_list = ModelSetting.get_list('jav_censored_ama_order', ',')
         for idx, site in enumerate(site_list):
@@ -130,7 +130,7 @@ class LogicJavCensoredAma(LogicModuleBase):
                     item['score'] -= idx
                 ret += data['data']
                 ret = sorted(ret, key=lambda k: k['score'], reverse=True)  
-            if all_find:
+            if manual:
                 continue
             else:
                 if len(ret) > 0 and ret[0]['score'] > 95:
