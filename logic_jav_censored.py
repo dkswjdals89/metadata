@@ -228,6 +228,7 @@ class LogicJavCensored(LogicModuleBase):
                 code,
                 proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
                 image_mode=image_mode, small_image_to_poster_list=ModelSetting.get_list('jav_censored_dmm_small_image_to_poster', ','))
+            
         else:
             data = SiteClass.info(
             code,
