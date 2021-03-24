@@ -16,7 +16,7 @@
     {{ macros.m_tab_content_start('normal', true) }}
       {{ macros.setting_checkbox('ftv_use_extra_match', '추가 매칭 사용', value=arg['ftv_use_extra_match'], desc=['On : 추가적으로 다른 사이트를 이용하여 정보를 찾음. 현재는 배우명 한글화, 부가영상에 사용', 'Off : tmdb 사이트 정보만 유지. 배우 이름에 한글이 있는 경우에만 한글화']) }}
       <div id="ftv_use_extra_match_div" class="collapse">
-      {{ macros.setting_radio('ftv_option_actor', '배우 처리방법', ['tmdb 정보 우선. 매칭된 배우만 한글적용', '국내 사이트 정보로 전부 대체', 'tmdb 정부 우선. 매칭된 배우만 한글적용 후 앞으로 배치', 'tmdb 정부 우선. 매칭된 배우만 한글적용 후 앞으로 배치. 남은 국내정보 추가'], value=arg['ftv_option_actor'], desc=None) }}
+      {{ macros.setting_radio('ftv_option_actor', '배우 처리방법', ['tmdb 정보 우선. 매칭된 배우만 한글적용', '국내 사이트 정보로 전부 대체', 'tmdb 정보 우선. 매칭된 배우만 한글적용 후 앞으로 배치', 'tmdb 정보 우선. 매칭된 배우만 한글적용 후 앞으로 배치. 남은 국내정보 추가'], value=arg['ftv_option_actor'], desc=None) }}
       
       {{ macros.setting_checkbox('ftv_use_extra_season', '시즌별 정보 사용', value=arg['ftv_use_extra_season'], desc=['On : 자동 매칭되는 경우 에피소드 제목/줄거리를 정보를 우선 적용', 'Off : tmdb 정보 유지. 영문일 경우 번역 옵션을 따름.']) }}
       {{ macros.setting_checkbox('ftv_use_extra_video', '작품별 부가영상 사용', value=arg['ftv_use_extra_video'], desc=['On : 부가영상이 있는 경우 등록']) }}
