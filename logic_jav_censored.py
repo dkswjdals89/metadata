@@ -78,7 +78,7 @@ class LogicJavCensored(LogicModuleBase):
                     ret = {}
                     ret['search'] = SiteJavbus.search(code, proxy_url=ModelSetting.get('jav_censored_javbus_proxy_url') if ModelSetting.get_bool('jav_censored_javbus_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_javbus_image_mode'), manual=False)
                     if ret['search']['ret'] == 'success':
-                        if len(ret['search']['ret']) > 0:
+                        if len(ret['search']['data']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
                 elif call == 'dmm':
                     from lib_metadata.site_dmm import SiteDmm
@@ -86,7 +86,7 @@ class LogicJavCensored(LogicModuleBase):
                     ret = {}
                     ret['search'] = SiteDmm.search(code, proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_dmm_image_mode'), manual=False)
                     if ret['search']['ret'] == 'success':
-                        if len(ret['search']['ret']) > 0:
+                        if len(ret['search']['data']) > 0:
                             ret['info'] = self.info(ret['search']['data'][0]['code'])
                 return jsonify(ret)
             elif sub == 'actor_test':
@@ -131,7 +131,7 @@ class LogicJavCensored(LogicModuleBase):
                 ret = {}
                 ret['search'] = SiteDmm.search(code, proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_dmm_image_mode'))
                 if ret['search']['ret'] == 'success':
-                    if len(ret['search']['ret']) > 0:
+                    if len(ret['search']['data']) > 0:
                         ret['info'] = self.info(ret['search']['data'][0]['code'])
                         from lib_metadata.util_nfo import UtilNfo
                         return UtilNfo.make_nfo_movie(ret['info'], output='file', filename='%s.nfo' % ret['info']['originaltitle'].upper())
@@ -161,7 +161,7 @@ class LogicJavCensored(LogicModuleBase):
                 do_trans=do_trans,
                 proxy_url=ModelSetting.get('jav_censored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_censored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
                 image_mode=ModelSetting.get('jav_censored_{site_name}_image_mode'.format(site_name=SiteClass.site_name)),manual=manual)
-            if data['ret'] == 'success':
+            if data['ret'] == 'success' and len(data['data']) > 0:
                 if idx != 0:
                     for item in data['data']:
                         item['score'] += -1
