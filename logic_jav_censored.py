@@ -23,7 +23,7 @@ package_name = P.package_name
 ModelSetting = P.ModelSetting
 
 from lib_metadata.server_util import MetadataServerUtil
-from lib_metadata import SiteUtil
+from lib_metadata import SiteUtil, SiteJavbus, SiteDmm, SiteMgstageDvd
 #########################################################
 
 class LogicJavCensored(LogicModuleBase):
@@ -51,10 +51,19 @@ class LogicJavCensored(LogicModuleBase):
         'jav_censored_dmm_use_proxy' : 'False',
         'jav_censored_dmm_proxy_url' : '',
         'jav_censored_dmm_image_mode' : '0',
-        'jav_censored_dmm_cookie' : 'age_check_done=1',
         'jav_censored_actor_test_name' : '',
         'jav_censored_dmm_small_image_to_poster' : '',
+
+        'jav_censored_mgs_code' : 'abw-073',
+        'jav_censored_mgs_use_proxy' : 'False',
+        'jav_censored_mgs_proxy_url' : '',
+        'jav_censored_mgs_image_mode' : '0',
+        'jav_censored_mgs_attach_number' : '',
+
     }
+    
+    module_map = {'javbus':SiteJavbus, 'dmm':SiteDmm, 'mgs':SiteMgstageDvd}
+
 
     def __init__(self, P):
         super(LogicJavCensored, self).__init__(P, 'setting')
@@ -64,30 +73,28 @@ class LogicJavCensored(LogicModuleBase):
         arg = P.ModelSetting.to_dict()
         arg['sub'] = self.name
         #if sub in ['setting']:
-        return render_template('{package_name}_{module_name}_{sub}.html'.format(package_name=P.package_name, module_name=self.name, sub=sub), arg=arg)
-        return render_template('sample.html', title='%s - %s' % (P.package_name, sub))
+        try:
+            return render_template('{package_name}_{module_name}_{sub}.html'.format(package_name=P.package_name, module_name=self.name, sub=sub), arg=arg)
+        except Exception as e: 
+            P.logger.error('Exception:%s', e)
+            P.logger.error(traceback.format_exc())
+            return render_template('sample.html', title='%s - %s' % (P.package_name, sub))
 
     def process_ajax(self, sub, req):
         try:
             if sub == 'test':
                 code = req.form['code']
                 call = req.form['call']
-                if call == 'javbus':
-                    from lib_metadata.site_javbus import SiteJavbus
-                    ModelSetting.set('jav_censored_javbus_code', code)
-                    ret = {}
-                    ret['search'] = SiteJavbus.search(code, proxy_url=ModelSetting.get('jav_censored_javbus_proxy_url') if ModelSetting.get_bool('jav_censored_javbus_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_javbus_image_mode'), manual=False)
-                    if ret['search']['ret'] == 'success':
-                        if len(ret['search']['data']) > 0:
-                            ret['info'] = self.info(ret['search']['data'][0]['code'])
-                elif call == 'dmm':
-                    from lib_metadata.site_dmm import SiteDmm
-                    ModelSetting.set('jav_censored_dmm_code', code)
-                    ret = {}
-                    ret['search'] = SiteDmm.search(code, proxy_url=ModelSetting.get('jav_censored_dmm_proxy_url') if ModelSetting.get_bool('jav_censored_dmm_use_proxy') else None, image_mode=ModelSetting.get('jav_censored_dmm_image_mode'), manual=False)
-                    if ret['search']['ret'] == 'success':
-                        if len(ret['search']['data']) > 0:
-                            ret['info'] = self.info(ret['search']['data'][0]['code'])
+                ModelSetting.set('jav_censored_%s_code' % (call), code)
+
+                SiteClass = self.module_map[call]
+                ret = {}
+                ret['search'] = SiteClass.search(code, 
+                    proxy_url=ModelSetting.get('jav_censored_%s_proxy_url' % call) if ModelSetting.get_bool('jav_censored_%s_use_proxy' % call) else None, 
+                    image_mode=ModelSetting.get('jav_censored_%s_image_mode' % call), manual=False)
+                if ret['search']['ret'] == 'success':
+                    if len(ret['search']['data']) > 0:
+                        ret['info'] = self.info(ret['search']['data'][0]['code'])
                 return jsonify(ret)
             elif sub == 'actor_test':
                 ModelSetting.set('jav_censored_actor_test_name', req.form['name'])
@@ -136,13 +143,6 @@ class LogicJavCensored(LogicModuleBase):
                         from lib_metadata.util_nfo import UtilNfo
                         return UtilNfo.make_nfo_movie(ret['info'], output='file', filename='%s.nfo' % ret['info']['originaltitle'].upper())
 
-    def setting_save_after(self):
-        from lib_metadata.site_dmm import SiteDmm
-        SiteDmm.dmm_headers['Cookie'] = ModelSetting.get('jav_censored_dmm_cookie')
-
-    def plugin_load(self):
-        from lib_metadata.site_dmm import SiteDmm
-        SiteDmm.dmm_headers['Cookie'] = ModelSetting.get('jav_censored_dmm_cookie')
     #########################################################
 
 

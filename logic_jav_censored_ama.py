@@ -38,29 +38,6 @@ class LogicJavCensoredAma(LogicModuleBase):
         'jav_censored_ama_title_format' : '[{title}] {tagline}',
     }
 
-    """            
-        'jav_censored_use_sjva' : 'False',
-        
-        'jav_censored_plex_is_proxy_preview' : 'True',
-        'jav_censored_plex_landscape_to_art' : 'True',
-        'jav_censored_plex_art_count' : '0',
-        'jav_censored_actor_order' : 'javdbs, hentaku',
-
-        'jav_censored_avdbs_use_proxy' : 'False',
-        'jav_censored_avdbs_proxy_url' : '',
-
-        'jav_censored_javbus_code' : 'ssni-900',
-        'jav_censored_javbus_use_proxy' : 'False',
-        'jav_censored_javbus_proxy_url' : '',
-        'jav_censored_javbus_image_mode' : '0',
-
-        'jav_censored_dmm_code' : 'ssni-900',
-        'jav_censored_dmm_use_proxy' : 'False',
-        'jav_censored_dmm_proxy_url' : '',
-        'jav_censored_dmm_image_mode' : '0',
-        'jav_censored_dmm_cookie' : 'age_check_done=1',
-    """
-
     def __init__(self, P):
         super(LogicJavCensoredAma, self).__init__(P, 'setting')
         self.name = 'jav_censored_ama'

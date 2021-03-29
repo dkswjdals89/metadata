@@ -35,7 +35,7 @@ class P(object):
                 ['setting', u'설정'], ['test', '테스트'],
             ],
             'jav_censored' : [
-                ['setting', u'설정'], ['dmm', 'DMM'], ['javbus', 'Javbus'],
+                ['setting', u'설정'], ['dmm', 'DMM'], ['mgs', 'MGS'], ['javbus', 'Javbus'],
             ],
             'jav_censored_ama' : [
                 ['setting', u'설정'], ['jav321', 'Jav321'], 
