@@ -131,7 +131,7 @@ class LogicJavCensoredAma(LogicModuleBase):
         if ret is not None:
             ret['plex_is_proxy_preview'] = True #ModelSetting.get_bool('jav_censored_plex_is_proxy_preview')
             ret['plex_is_landscape_to_art'] = True #ModelSetting.get_bool('jav_censored_plex_landscape_to_art')
-            ret['plex_art_count'] = ModelSetting.get_int('jav_censored_plex_art_count')
+            ret['plex_art_count'] = ModelSetting.get_int('jav_censored_art_count')
             if ret['plex_art_count'] == 0 and len(ret['thumb']) == 1:
                 ret['plex_art_count'] = 1
             art_count = ModelSetting.get_int('jav_censored_art_count')                
