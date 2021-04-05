@@ -17,6 +17,7 @@ from framework import db, scheduler, path_data, socketio, SystemModelSetting, ap
 from framework.util import Util
 from framework.common.util import headers, get_json_with_auth_session
 from framework.common.plugin import LogicModuleBase, default_route_socketio
+from system import SystemLogicTrans
 
 # 패키지
 #from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv
@@ -65,6 +66,10 @@ class LogicMovie(LogicModuleBase):
 
         'movie_use_sub_tmdb' : '1', #['모두 사용', 'Daum은 사용 안함', '사용 안함']
         'movie_rating_score' : '70',
+
+        'movie_translate_option' : '0',
+        'movie_actor_trans' : 'False',
+
     }
 
     module_map = {'naver':SiteNaverMovie, 'daum':SiteDaumMovie, 'tmdb':SiteTmdbMovie, 'watcha':SiteWatchaMovie, 'wavve':SiteWavveMovie, 'tving':SiteTvingMovie}
@@ -381,8 +386,7 @@ class LogicMovie(LogicModuleBase):
                     logger.error('Exception:%s', e)
                     logger.error(traceback.format_exc())
                     logger.error('watcha search fail..')
-
-            
+            self.process_trans(info)
             return info                    
 
 
@@ -391,6 +395,26 @@ class LogicMovie(LogicModuleBase):
             P.logger.error(traceback.format_exc())
 
     
+    def process_trans(self, data):
+        mode = ModelSetting.get('movie_translate_option')
+        if mode == '0':
+            return
+        elif mode == '1':
+            function = SystemLogicTrans.trans_google
+        elif mode == '2':
+            function = SystemLogicTrans.trans_papago
+
+        if SiteUtil.is_include_hangul(data['plot']) == False:
+            data['plot'] = function(data['plot'], source='en')
+        if ModelSetting.get_bool('movie_actor_trans'):
+            for actor in data['actor']:
+                if SiteUtil.is_include_hangul(actor['name']) == False:
+                    actor['name'] = function(actor['name'], source='en')
+                if SiteUtil.is_include_hangul(actor['role']) == False:
+                    actor['role'] = function(actor['role'], source='en')
+        return data
+
+
 
     def change_tmdb_actor_info(self, tmdb_info, portal_info):
         if len(portal_info) == 0:
