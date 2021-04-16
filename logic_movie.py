@@ -177,6 +177,19 @@ class LogicMovie(LogicModuleBase):
     #########################################################
 
     def search(self, keyword, year, manual=False):
+        if keyword.startswith('M'):
+            data = self.info(keyword)
+            if data is not None:
+                item = {}
+                item['code'] = keyword
+                item['score'] = 100
+                item['title'] = data['title']
+                item['year'] = data['year']
+                item['image_url'] = data['art'][0]['value']
+                item['desc'] = data['plot']
+                item['site'] = data['site']
+                return [item]
+    
         ret = []
         site_list = ModelSetting.get_list('movie_first_order', ',')
         #site_list = ['naver']
