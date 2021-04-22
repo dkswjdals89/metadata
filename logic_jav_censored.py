@@ -147,6 +147,7 @@ class LogicJavCensored(LogicModuleBase):
 
 
     def search(self, keyword, manual=False):
+        logger.debug('dvd search - keyword:[%s] manual:[%s]', keyword, manual)
         do_trans = manual
         ret = []
         site_list = ModelSetting.get_list('jav_censored_order', ',')
