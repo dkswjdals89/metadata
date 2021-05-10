@@ -416,6 +416,8 @@ class LogicMovie(LogicModuleBase):
             function = SystemLogicTrans.trans_google
         elif mode == '2':
             function = SystemLogicTrans.trans_papago
+        elif mode == '3':
+            function = SystemLogicTrans.trans_google_web
 
         if SiteUtil.is_include_hangul(data['plot']) == False:
             data['plot'] = function(data['plot'], source='en')

@@ -239,7 +239,7 @@ class LogicJavCensored(LogicModuleBase):
 
         if data['ret'] == 'success':
             ret = data['data']
-            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '':
+            if ModelSetting.get_bool('jav_censored_use_sjva') and image_mode == '3' and SystemModelSetting.get('trans_type') in ['1', '3'] and SystemModelSetting.get('trans_google_api_key') != '':
                 MetadataServerUtil.set_metadata_jav_censored(code, ret, ret['title'].lower())
         else:
             logger.debug('info2 fail..')
