@@ -60,6 +60,8 @@ class LogicJavCensored(LogicModuleBase):
         'jav_censored_mgs_image_mode' : '0',
         'jav_censored_mgs_attach_number' : '',
 
+        'jav_censored_use_extras' : 'True',
+
     }
     
     module_map = {'javbus':SiteJavbus, 'dmm':SiteDmm, 'mgs':SiteMgstageDvd}
@@ -221,6 +223,15 @@ class LogicJavCensored(LogicModuleBase):
                     ret['tag'] = []
                 elif tag_option == '1':
                     ret['tag'] = [ret['originaltitle'].split('-')[0]]
+                elif tag_option == '3':
+                    tmp = []
+                    for _ in ret['tag']:
+                        if _ != ret['originaltitle'].split('-')[0]:
+                            tmp.append(_)
+                    ret['tag'] = tmp
+
+            if ModelSetting.get_bool('jav_censored_use_extras') == False:
+                ret['extras'] = []
             return ret
 
     def info2(self, code, SiteClass):
