@@ -14,6 +14,7 @@
   <form id='setting' name='setting'>
   <div class="tab-content" id="nav-tabContent">
     {{ macros.m_tab_content_start('normal', true) }}
+      {{ macros.setting_checkbox('ktv_use_tmdb', 'TMDB 이미지 사용', value=arg['ktv_use_tmdb'], desc=['On : TMDB 매칭시 TMDB 배우 이미지 사용']) }}
       {{ macros.setting_checkbox('ktv_use_kakaotv', '작품별 부가영상 사용', value=arg['ktv_use_kakaotv'], desc=['On : 최근 영상 20개를 부가영상 항목에 포함']) }}
       {{ macros.setting_checkbox('ktv_use_kakaotv_episode', '에피소드별 부가영상 사용', value=arg['ktv_use_kakaotv_episode'], desc=['On : 에피소드별 부가영상 포함. 현재는 안드로이드 앱에서만 재생 지원']) }}
       <!--{{ macros.setting_input_text('ktv_episode_info_order', '에피소드 정보 구성 우선 순위', value=arg['ktv_episode_info_order'], desc=['에피소드 정보 구성 우선 순위', 'daum이 포함되어 있으면 에피소드마다 daum 접속 필요.']) }}-->

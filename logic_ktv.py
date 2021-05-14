@@ -44,6 +44,7 @@ class LogicKtv(LogicModuleBase):
         'ktv_wavve_test_info' : '',
         'ktv_tving_test_search' : '',
         'ktv_tving_test_info' : '',
+        'ktv_use_tmdb' : 'True',
     }
 
     module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
@@ -175,13 +176,14 @@ class LogicKtv(LogicModuleBase):
                 if 'kakao_id' in show['extra_info'] and show['extra_info']['kakao_id'] is not None and ModelSetting.get_bool('ktv_use_kakaotv'):
                     show['extras'] = SiteDaumTv.get_kakao_video(show['extra_info']['kakao_id'])
 
-                from lib_metadata import SiteTmdbTv
-                tmdb_id = SiteTmdbTv.search_tv(show['title'], show['premiered'])
-                show['extra_info']['tmdb_id'] = tmdb_id
-                if tmdb_id is not None:
-                    show['tmdb'] = {}
-                    show['tmdb']['tmdb_id'] = tmdb_id
-                    SiteTmdbTv.apply(tmdb_id, show, apply_image=True, apply_actor_image=True)
+                if ModelSetting.get_bool('ktv_use_tmdb'):
+                    from lib_metadata import SiteTmdbTv
+                    tmdb_id = SiteTmdbTv.search_tv(show['title'], show['premiered'])
+                    show['extra_info']['tmdb_id'] = tmdb_id
+                    if tmdb_id is not None:
+                        show['tmdb'] = {}
+                        show['tmdb']['tmdb_id'] = tmdb_id
+                        SiteTmdbTv.apply(tmdb_id, show, apply_image=True, apply_actor_image=True)
 
                 if 'tving_episode_id' in show['extra_info']:
                     SiteTvingTv.apply_tv_by_episode_code(show, show['extra_info']['tving_episode_id'], apply_plot=True, apply_image=True )
