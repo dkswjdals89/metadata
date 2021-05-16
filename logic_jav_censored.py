@@ -225,9 +225,10 @@ class LogicJavCensored(LogicModuleBase):
                     ret['tag'] = [ret['originaltitle'].split('-')[0]]
                 elif tag_option == '3':
                     tmp = []
-                    for _ in ret['tag']:
-                        if _ != ret['originaltitle'].split('-')[0]:
-                            tmp.append(_)
+                    if ret['tag'] is not None:
+                        for _ in ret['tag']:
+                            if _ != ret['originaltitle'].split('-')[0]:
+                                tmp.append(_)
                     ret['tag'] = tmp
 
             if ModelSetting.get_bool('jav_censored_use_extras') == False:

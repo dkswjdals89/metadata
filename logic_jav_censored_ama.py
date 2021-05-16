@@ -36,6 +36,8 @@ class LogicJavCensoredAma(LogicModuleBase):
 
         'jav_censored_ama_order' : 'mgstage, jav321, r18',
         'jav_censored_ama_title_format' : '[{title}] {tagline}',
+        'jav_censored_ama_tag_option' : '2',
+        'jav_censored_ama_use_extras' : 'True',
     }
 
     def __init__(self, P):
@@ -154,11 +156,20 @@ class LogicJavCensoredAma(LogicModuleBase):
                 tagline=ret['tagline'] if ret['tagline'] is not None else '',
             )
             if 'tag' in ret:
-                tag_option = ModelSetting.get('jav_censored_tag_option')
+                tag_option = ModelSetting.get('jav_censored_ama_tag_option')
                 if tag_option == '0':
                     ret['tag'] = []
                 elif tag_option == '1':
                     ret['tag'] = [ret['originaltitle'].split('-')[0]]
+                elif tag_option == '3':
+                    tmp = []
+                    if ret['tag'] is not None:
+                        for _ in ret['tag']:
+                            if _ != ret['originaltitle'].split('-')[0]:
+                                tmp.append(_)
+                    ret['tag'] = tmp
+            if ModelSetting.get_bool('jav_censored_ama_use_extras') == False:
+                ret['extras'] = []
             return ret
 
     def info2(self, code, SiteClass):
