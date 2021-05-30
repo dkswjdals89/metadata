@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # python
 import os, traceback, time, json
 
@@ -19,26 +18,26 @@ class P(object):
     logger = get_logger(package_name)
     blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
     menu = {
-        'main' : [package_name, u'메타데이터'],
+        'main' : [package_name, '메타데이터'],
         'sub' : [
-            ['movie', u'영화'], ['ktv', u'국내TV'],  ['ftv', u'외국TV'], ['jav_censored', u'JavCensored'], ['jav_censored_ama', u'JavCensored AMA'], ['log', u'로그']
+            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['log', '로그']
         ], 
         'category' : 'tool',
         'sub2' : {
             'ktv' : [
-                ['setting', u'설정'], ['test', '테스트'], #['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
+                ['setting', '설정'], ['test', '테스트'], #['daum', 'Daum'], ['wavve', '웨이브'], ['tving', '티빙'], 
             ],
             'movie' : [
-                ['setting', u'설정'], ['test', '테스트'], #['naver', '네이버'], ['daum', 'Daum'], ['tmdb', 'TMDB'], ['watcha', '왓챠'],  ['tmdb', 'TMDB'], ['wavve', '웨이브'], ['tving', '티빙'], 
+                ['setting', '설정'], ['test', '테스트'], #['naver', '네이버'], ['daum', 'Daum'], ['tmdb', 'TMDB'], ['watcha', '왓챠'],  ['tmdb', 'TMDB'], ['wavve', '웨이브'], ['tving', '티빙'], 
             ],
             'ftv' : [
-                ['setting', u'설정'], ['test', '테스트'],
+                ['setting', '설정'], ['test', '테스트'],
             ],
             'jav_censored' : [
-                ['setting', u'설정'], ['dmm', 'DMM'], ['mgs', 'MGS'], ['javbus', 'Javbus'],
+                ['setting', '설정'], ['dmm', 'DMM'], ['mgs', 'MGS'], ['javbus', 'Javbus'],
             ],
             'jav_censored_ama' : [
-                ['setting', u'설정'], ['jav321', 'Jav321'], 
+                ['setting', '설정'], ['jav321', 'Jav321'], 
             ],
         }
     }  
@@ -48,8 +47,8 @@ class P(object):
         'name' : package_name,
         'category_name' : 'tool',
         'icon' : '',
-        'developer' : u'soju6jan',
-        'description' : u'Metadata',
+        'developer' : 'soju6jan',
+        'description' : 'Metadata',
         'home' : 'https://github.com/soju6jan/%s' % package_name,
         'more' : '',
     }
@@ -62,8 +61,8 @@ class P(object):
 def initialize():
     try:
         app.config['SQLALCHEMY_BINDS'][P.package_name] = 'sqlite:///%s' % (os.path.join(path_data, 'db', '{package_name}.db'.format(package_name=P.package_name)))
-        from framework.util import Util
-        Util.save_from_dict_to_json(P.plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
+        from tool_base import ToolUtil
+        ToolUtil.save_dict(P.plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
 
         from .logic_ktv import LogicKtv
         from .logic_jav_censored import LogicJavCensored
