@@ -282,7 +282,10 @@ class LogicMovie(LogicModuleBase):
                                 count += 1
                             else:
                                 break
-
+                        if count == 1:
+                            tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
+                            if tmdb_data['ret'] == 'success':
+                                tmdb_info = tmdb_data['data']
                         if count == 0:
                             if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
                                 tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
