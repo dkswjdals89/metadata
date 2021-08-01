@@ -34,7 +34,7 @@ from lib_metadata.server_util import MetadataServerUtil
 class LogicMovie(LogicModuleBase):
     db_default = {
         'movie_db_version' : '1',
-        'movie_first_order' : 'naver, daum, tmdb',
+        'movie_first_order' : 'daum, naver, tmdb',
         'movie_use_tmdb_image' : 'False',
         #'movie_use_tmdb' : 'True',
         'movie_use_watcha' : 'True',
