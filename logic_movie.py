@@ -65,6 +65,7 @@ class LogicMovie(LogicModuleBase):
         'movie_wavve_mode' : '0',
 
         'movie_use_sub_tmdb' : '1', #['모두 사용', 'Daum은 사용 안함', '사용 안함']
+        'movie_use_sub_tmdb_mode' : '0', #['모두 사용', 'Art만, '배우정보']
         'movie_rating_score' : '70',
 
         'movie_translate_option' : '0',
@@ -84,8 +85,13 @@ class LogicMovie(LogicModuleBase):
         arg = P.ModelSetting.to_dict()
         arg['sub'] = self.name
 
-        try: return render_template('{package_name}_{module_name}_{sub}.html'.format(package_name=P.package_name, module_name=self.name, sub=sub), arg=arg)
-        except: return render_template('sample.html', title='%s - %s' % (P.package_name, sub))
+        try: 
+            return render_template(f'{package_name}_{self.name}_{sub}.html', arg=arg)
+        except Exception as e:
+            logger.error(f'Exception:{str(e)}')
+            logger.error(traceback.format_exc())
+            return render_template('sample.html', title=f"{package_name}/{self.name}/{sub}")
+
 
     def process_ajax(self, sub, req):
         try:
@@ -274,7 +280,7 @@ class LogicMovie(LogicModuleBase):
                     tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
                     #logger.debug(json.dumps(tmdb_search, indent=4))
                     if tmdb_search['ret'] == 'success' and len(tmdb_search['data']) > 0:
-                        #logger.debug(tmdb_search['data'][0]['title'])
+                        logger.debug(tmdb_search['data'][0]['title'])
                         #logger.debug()
                         count = 0
                         for item in tmdb_search['data']:
@@ -296,10 +302,17 @@ class LogicMovie(LogicModuleBase):
                         logger.debug('tmdb :%s %s', tmdb_info['title'], tmdb_info['year'])  
                         #logger.debug(json.dumps(tmdb_info, indent=4))
                         logger.debug('tmdb_info : %s', tmdb_info['title'])
-                        info['extras'] += tmdb_info['extras']
-                        self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
-                        info['actor'] = tmdb_info['actor']
-                        info['art'] += tmdb_info['art']
+                        movie_use_sub_tmdb_mode = ModelSetting.get('movie_use_sub_tmdb_mode')
+                        if movie_use_sub_tmdb_mode == '0':
+                            info['extras'] += tmdb_info['extras']
+                            self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
+                            info['actor'] = tmdb_info['actor']
+                            info['art'] += tmdb_info['art']
+                        elif movie_use_sub_tmdb_mode == '1':
+                            info['art'] += tmdb_info['art']
+                        elif movie_use_sub_tmdb_mode == '2':
+                            self.change_tmdb_actor_info(tmdb_info['actor'], info['actor'])
+                            info['actor'] = tmdb_info['actor']
                         info['code_list'] += tmdb_info['code_list']
                         if info['plot'] == '':
                             info['plot'] = tmdb_info['plot']
