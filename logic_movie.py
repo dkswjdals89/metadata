@@ -183,6 +183,10 @@ class LogicMovie(LogicModuleBase):
     #########################################################
 
     def search(self, keyword, year, manual=False):
+        try: 
+            if instance(year, str):
+                year = int(str)
+        except: pass
         if keyword.startswith('M'):
             data = self.info(keyword)
             if data is not None:
