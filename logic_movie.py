@@ -184,7 +184,7 @@ class LogicMovie(LogicModuleBase):
 
     def search(self, keyword, year, manual=False):
         try: 
-            if instance(year, str):
+            if isinstance(year, str):
                 year = int(str)
         except: pass
         if keyword.startswith('M'):
