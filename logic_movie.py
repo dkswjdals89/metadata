@@ -274,30 +274,48 @@ class LogicMovie(LogicModuleBase):
 
             #'movie_use_sub_tmdb' : '0' #['모두 사용', 'Daum은 사용 안함', '사용 안함']
             movie_use_sub_tmdb = ModelSetting.get('movie_use_sub_tmdb')
+            logger.warning(movie_use_sub_tmdb)
             if code[1] != 'T' and (movie_use_sub_tmdb == '0' or (movie_use_sub_tmdb == '1' and code[1] != 'D')):
                 try:
                     tmdb_info = None
-                    tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
-                    #logger.debug(json.dumps(tmdb_search, indent=4))
-                    if tmdb_search['ret'] == 'success' and len(tmdb_search['data']) > 0:
-                        logger.debug(tmdb_search['data'][0]['title'])
-                        #logger.debug()
-                        count = 0
-                        for item in tmdb_search['data']:
-                            if item['score'] == 100:
-                                count += 1
-                            else:
-                                break
-                        if count == 1:
-                            tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
-                            if tmdb_data['ret'] == 'success':
-                                tmdb_info = tmdb_data['data']
-                        if count == 0:
-                            if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
+                    for i  in range(2):
+                        tmdb_search = None
+                        if i == 0:
+                            tmdb_search = SiteTmdbMovie.search(info['title'], year=info['year'])
+                            #logger.debug(json.dumps(tmdb_search, indent=4))
+                            if tmdb_search['ret'] == 'empty':
+                                continue
+                        elif i == 1:
+                            if 'title_en' in info['extra_info']:
+                                tmdb_search = SiteTmdbMovie.search(info['extra_info']['title_en'], year=info['year'])
+                                #logger.debug(json.dumps(tmdb_search, indent=4))
+                            elif info['originaltitle'] != '':
+                                tmdb_search = SiteTmdbMovie.search(info['originaltitle'], year=info['year'])
+                                #logger.debug(json.dumps(tmdb_search, indent=4))
+                        if tmdb_search is None:
+                            continue
+                        if tmdb_search['ret'] == 'success' and len(tmdb_search['data']) > 0:
+                            logger.debug(tmdb_search['data'][0]['title'])
+                            #logger.debug()
+                            count = 0
+                            for item in tmdb_search['data']:
+                                if item['score'] == 100:
+                                    count += 1
+                                else:
+                                    break
+                            if count == 1:
                                 tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
                                 if tmdb_data['ret'] == 'success':
                                     tmdb_info = tmdb_data['data']
-                            
+                            if count == 0:
+                                if tmdb_search['data'][0]['score'] > 85 or ('title_en' in info['extra_info'] and SiteUtil.compare(info['extra_info']['title_en'], tmdb_search['data'][0]['originaltitle'])):
+                                    tmdb_data = SiteTmdbMovie.info(tmdb_search['data'][0]['code'])
+                                    if tmdb_data['ret'] == 'success':
+                                        tmdb_info = tmdb_data['data']
+                        if tmdb_info is not None:
+                            break
+                        
+
                     if tmdb_info is not None:
                         logger.debug('tmdb :%s %s', tmdb_info['title'], tmdb_info['year'])  
                         #logger.debug(json.dumps(tmdb_info, indent=4))
