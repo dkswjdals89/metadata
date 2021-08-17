@@ -16,7 +16,7 @@ from lxml import etree as ET
 from framework import db, scheduler, path_data, socketio, SystemModelSetting, app, py_urllib
 from framework.util import Util
 from framework.common.util import headers
-from framework.common.plugin import LogicModuleBase, default_route_socketio
+from plugin import LogicModuleBase, default_route_socketio
 
 # 패키지
 from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv, SiteUtil
