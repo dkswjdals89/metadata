@@ -27,7 +27,7 @@
       {{ macros.setting_input_text('ftv_season_order', '에피소드 정보 우선순위', value=arg['ftv_season_order'], desc=['메타서버에 사이트 정보가 여러개 있는 경우 적용할 우선순위', 'wavve, tving, daum 등']) }}
       </div>
       {{ macros.m_hr() }}
-      {{ macros.setting_radio('ftv_translate_option', '번역', ['번역하지 않음', '구글 API 사용', '파파고 사용', '구글 WEB 사용'], value=arg['ftv_translate_option'], desc=['에피소드 제목, 줄거리가 영문일 경우 번역 사용여부']) }}
+      {{ macros.setting_radio('ftv_translate_option', '번역', ['번역하지 않음', '구글 API 사용', '파파고 사용', '구글 WEB 사용', '파파고 WEB 사용'], value=arg['ftv_translate_option'], desc=['에피소드 제목, 줄거리가 영문일 경우 번역 사용여부']) }}
       {{ macros.setting_checkbox('ftv_actor_trans', '배우정보 번역', value=arg['ftv_actor_trans'], desc=['On : 배우 이름, 역할도 번역']) }}
       {{ macros.setting_checkbox('ftv_use_theme', '테마 음악 적용', value=arg['ftv_use_theme'], desc=['On : 테마 음악이 있는 경우 적용. 적용시 메타용량 증가']) }}
 
