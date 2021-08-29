@@ -218,6 +218,8 @@ class LogicFtv(LogicModuleBase):
             function = SystemLogicTrans.trans_papago
         elif mode == '3':
             function = SystemLogicTrans.trans_google_web
+        elif mode == '4':
+            function = SystemLogicTrans.trans_papago_web
 
         if data_type == 'show':
             if data['is_plot_kor'] == False:
