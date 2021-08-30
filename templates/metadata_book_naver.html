@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div>
+  {{ macros.m_button_group([['search_btn', '검색']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+
+  <nav>  
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head2('normal', '테스트', true) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+  <div class="tab-content" id="nav-tabContent">
+    {{ macros.m_tab_content_start('normal', true) }}
+      {{ macros.setting_input_text('book_naver_titl', '책 제목', value=arg['book_naver_titl']) }}
+      {{ macros.setting_input_text('book_naver_auth', '저자명', value=arg['book_naver_auth']) }}
+      {{ macros.setting_input_text('book_naver_cont', '목차', value=arg['book_naver_cont']) }}
+      {{ macros.setting_input_text('book_naver_isbn', 'isbn', value=arg['book_naver_isbn']) }}
+      {{ macros.setting_input_text('book_naver_publ', '출판사', value=arg['book_naver_publ']) }}
+      {{ macros.buttons([['search_api_btn', 'API 검색'], ['search_btn', '검색']]) }}
+      {{ macros.m_hr() }}
+      {{ macros.setting_input_text_and_buttons('book_naver_code', '코드', [['info_naver_btn', 'Info']], value=arg['book_naver_code']) }}
+    {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+</form>
+</div><!--전체-->
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name'] }}";
+var sub = "{{arg['sub'] }}";
+var current_data = null;
+
+$(document).ready(function(){
+});
+
+function search(mode) {
+  var s = $('#book_naver_titl').val().trim() + '|' + $('#book_naver_auth').val().trim() + '|' +$('#book_naver_cont').val().trim() + '|' +$('#book_naver_isbn').val().trim() + '|' +$('#book_naver_publ').val().trim();
+  global_send_command2('search_naver', s, mode);
+}
+
+$("body").on('click', '#search_api_btn', function(e){
+  e.preventDefault();
+  search('api');
+});
+
+$("body").on('click', '#search_btn', function(e){
+  e.preventDefault();
+  search('');
+});
+
+$("body").on('click', '#info_naver_btn', function(e){
+  e.preventDefault();
+  global_send_command2('info_naver', $('#book_naver_code').val().trim());
+});
+
+</script>    
+{% endblock %}
