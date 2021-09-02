@@ -489,7 +489,7 @@ class LogicFtv(LogicModuleBase):
             if season_count == 1:
                 search_title = [title]
             else:
-                search_title = [u'%s 시즌 1' % title, u'%s 1기' % title]
+                search_title = [title, u'%s 시즌 1' % title, u'%s 1기' % title]
         else:
             watcha_search = SiteWatchaTv.search(title, year=series_year, season_count=season_count)
             if watcha_search['ret'] != 'success':
