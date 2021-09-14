@@ -247,23 +247,41 @@ def basenormal(sub):
                 poster = im.crop((left, top, right, bottom))
                 poster.save(filename)
                 return send_file(filename, mimetype='image/jpeg')
-        elif sub == 'video':
-            site = request.args.get('site')
+        elif sub == 'stream':
+            mode = request.args.get('mode')
             param = request.args.get('param')
-            if site == 'naver':
+            if mode == 'naver':
                 from lib_metadata import SiteNaverMovie
                 ret = SiteNaverMovie.get_video_url(param)
-            elif site == 'youtube':
+            elif mode == 'youtube':
                 command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('param')]
                 from system.logic_command import SystemLogicCommand
                 ret = SystemLogicCommand.execute_command_return(command).strip()
-            elif site == 'kakao':
+            elif mode == 'kakao':
                 url = 'https://tv.kakao.com/katz/v2/ft/cliplink/{}/readyNplay?player=monet_html5&profile=HIGH&service=kakao_tv&section=channel&fields=seekUrl,abrVideoLocationList&startPosition=0&tid=&dteType=PC&continuousPlay=false&contentType=&{}'.format(param, int(time.time()))
-                
                 data = requests.get(url).json()
                 #logger.debug(json.dumps(data, indent=4))
                 ret = data['videoLocation']['url']
-                logger.debug(ret)
+            elif mode == 'tving_movie':
+                import framework.tving.api as Tving
+                data = Tving.get_stream_info_by_web('movie', param, 'stream50')
+                ret = data['play_info']['hls']
+            elif mode == 'tving':
+                import framework.tving.api as Tving
+                data, url = Tving.get_episode_json_default(param, 'stream50')
+                ret = url
+            elif mode == 'wavve_movie':
+                import framework.wavve.api as Wavve
+                data = {'wavve_url':Wavve.streaming2('movie', param, 'FHD', return_url=True)}
+                ret = data['wavve_url']
+            elif mode == 'wavve':
+                import framework.wavve.api as Wavve
+                data = Wavve.streaming('vod', param, '1080p', return_url=True)
+                ret = data
+           
+            logger.warning(f"mode : {mode}")
+            logger.warning(f"param : {param}")
+            logger.warning(f"ret : {ret}")
             return redirect(ret)             
     except Exception as e:
         logger.debug('Exception:%s', e)
