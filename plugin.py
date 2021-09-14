@@ -247,7 +247,24 @@ def basenormal(sub):
                 poster = im.crop((left, top, right, bottom))
                 poster.save(filename)
                 return send_file(filename, mimetype='image/jpeg')
-                    
+        elif sub == 'video':
+            site = request.args.get('site')
+            param = request.args.get('param')
+            if site == 'naver':
+                from lib_metadata import SiteNaverMovie
+                ret = SiteNaverMovie.get_video_url(param)
+            elif site == 'youtube':
+                command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('param')]
+                from system.logic_command import SystemLogicCommand
+                ret = SystemLogicCommand.execute_command_return(command).strip()
+            elif site == 'kakao':
+                url = 'https://tv.kakao.com/katz/v2/ft/cliplink/{}/readyNplay?player=monet_html5&profile=HIGH&service=kakao_tv&section=channel&fields=seekUrl,abrVideoLocationList&startPosition=0&tid=&dteType=PC&continuousPlay=false&contentType=&{}'.format(param, int(time.time()))
+                
+                data = requests.get(url).json()
+                #logger.debug(json.dumps(data, indent=4))
+                ret = data['videoLocation']['url']
+                logger.debug(ret)
+            return redirect(ret)             
     except Exception as e:
         logger.debug('Exception:%s', e)
         logger.debug(traceback.format_exc())
