@@ -78,7 +78,8 @@ def initialize():
         from .logic_ftv import LogicFtv
         from .logic_lyric import LogicLyric
         from .logic_book import LogicBook
-        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P)]
+        from .logic_videostation import LogicVideoStation
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
