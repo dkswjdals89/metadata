@@ -18,6 +18,7 @@ from framework.util import Util
 from framework.common.util import headers
 from plugin import LogicModuleBase, default_route_socketio
 from system import SystemLogicTrans
+from tool_base import d
 
 # 패키지
 #from lib_metadata import SiteVive
@@ -70,19 +71,21 @@ class LogicLyric(LogicModuleBase):
         try:
             logger.warning(f"{artist} - {track_title} - {filename}")
             ret = {}
-            url = f'https://apis.naver.com/vibeWeb/musicapiweb/v4/searchall?query={artist} {track_title}'
+            url = f"https://apis.naver.com/vibeWeb/musicapiweb/v4/searchall?query={py_urllib.quote(artist.replace('&', ','))}%20{py_urllib.quote(track_title)}"
             data = requests.get(url, headers={'accept' : 'application/json'}).json()
+            #logger.warning(url)
             tracks = data['response']['result']['trackResult']['tracks']
-            #logger.warning(self.dump(tracks))
+            logger.warning(self.dump(tracks))
             track = None
             for item in tracks:
+
                 if item['trackTitle'].replace(' ', '').strip() == track_title.replace(' ', '').strip():
                     track = item
                     break
             if track is None:
                 logger.warning('정확히 일치하는 제목이 없음')
                 track = track[0]
-            
+            #logger.warning(d(track))
             if track['hasLyric']:
                 url = f"https://apis.naver.com/vibeWeb/musicapiweb/track/{track['trackId']}/info"
                 tmp = requests.get(url, headers={'accept' : 'application/json'}).json()
@@ -102,6 +105,11 @@ class LogicLyric(LogicModuleBase):
                 else:
                     ret['ret'] = 'fail'
                     ret['log'] = '가사가 없습니다.'
+            else:
+                logger.warning("track['hasLyric'] is false!!")
+                ret['ret'] = 'fail'
+                ret['log'] = '가사가 없습니다.'
+            logger.debug(f"get_lyric return is {ret['ret']}")
         except Exception as exception:
             logger.debug('Exception:%s', exception)
             logger.debug(traceback.format_exc())
