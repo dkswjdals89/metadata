@@ -39,6 +39,7 @@ class LogicLyric(LogicModuleBase):
         super(LogicLyric, self).__init__(P, 'test')
         self.name = name
 
+    """
     def process_menu(self, sub, req):
         arg = P.ModelSetting.to_dict()
         arg['sub'] = self.name
@@ -59,7 +60,7 @@ class LogicLyric(LogicModuleBase):
             P.logger.error('Exception:%s', e)
             P.logger.error(traceback.format_exc())
             return jsonify({'ret':'exception', 'log':str(e)})
-
+    """
     def process_api(self, sub, req):
         if sub == 'get_lyric':
             ret = self.get_lyric(req.args.get('mode'), req.args.get('artist'), req.args.get('track'), req.args.get('filename'))

@@ -20,7 +20,7 @@ class P(object):
     menu = {
         'main' : [package_name, '메타데이터'],
         'sub' : [
-            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['lyric', '가사'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['book', '책'], ['log', '로그']
+            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['music', '음악'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['book', '책'], ['log', '로그']
         ], 
         'category' : 'tool',
         'sub2' : {
@@ -33,7 +33,7 @@ class P(object):
             'ftv' : [
                 ['setting', '설정'], ['test', '테스트'],
             ],
-            'lyric' : [
+            'music' : [
                 ['test', '테스트'],
             ],
             'jav_censored' : [
@@ -79,7 +79,8 @@ def initialize():
         from .logic_lyric import LogicLyric
         from .logic_book import LogicBook
         from .logic_videostation import LogicVideoStation
-        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P)]
+        from .logic_music import LogicMusic
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P), LogicMusic(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
