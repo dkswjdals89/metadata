@@ -61,23 +61,23 @@ class LogicMusic(LogicModuleBase):
                     arg1 = req.form['arg1'].strip()
                     keyword = req.form['arg2'].strip()
                     logger.debug(f"[{command}] [{arg1}] [{keyword}]")
-                    what, site, mode, json_mode = arg1.split('|')
+                    what, site, mode, return_format = arg1.split('|')
                     ret = {'ret':'success', 'modal':None}
                     if what == 'artist':
                         if mode == 'search':
                             ModelSetting.set('music_test_artist_search', keyword)
-                            ret['json'] = self.artist_search(keyword, json_mode)
+                            ret['json'] = self.search_artist(keyword, return_format)
                         elif mode == 'info':
                             ModelSetting.set('music_test_artist_info', keyword)
-                            ret['json'] = self.artist_info(keyword, json_mode)
+                            ret['json'] = self.info_artist(keyword, return_format)
                     elif what == 'album':
                         if mode == 'search':
                             ModelSetting.set('music_test_album_search', keyword)
                             tmp = keyword.split('|')
-                            if len(tmp) == 0:
-                                ret['json'] = self.album_search(None, keyword, json_mode)
-                            elif len(tmp) == 1:
-                                ret['modal'] = self.album_search(tmp[0], tmp[1], json_mode)
+                            if len(tmp) == 1:
+                                ret['json'] = self.album_search(None, keyword, return_format)
+                            elif len(tmp) == 2:
+                                ret['json'] = self.album_search(tmp[0], tmp[1], return_format)
                         elif mode == 'info':
                             ModelSetting.set('music_test_album_info', keyword)
                             ret['json'] = self.album_info(keyword, json_mode)
@@ -108,27 +108,22 @@ class LogicMusic(LogicModuleBase):
 
     #########################################################
 
-    def artist_search(self, keyword, mode):
+    def search_artist(self, keyword, return_format):
+        data = SiteVibe.search_artist(keyword, return_format)
+        return data
+    
+    def info_artist(self, keyword, return_format):
+        data = SiteVibe.info_artist(keyword, return_format)
+        return data
+
+    
+
+
+    def album_search(self, artist, album, mode):
         data = SiteVibe.search_artist(keyword, mode)
         return data
-        
 
-        ret = {}
 
-        #site_list = ModelSetting.get_list('jav_censored_order', ',')
-        site_list = ['daum', 'tving', 'wavve']
-        for idx, site in enumerate(site_list):
-            logger.debug(site)
-            site_data = self.module_map[site].search(keyword)
-            #logger.debug(data)
-
-            if site_data['ret'] == 'success':
-                ret[site] = site_data['data']
-                logger.info(u'KTV 검색어 : %s site : %s 매칭', keyword, site)
-                if manual:
-                    continue
-                return ret
-        return ret
 
     def info(self, code, title):
         try:
