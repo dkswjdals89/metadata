@@ -450,14 +450,8 @@ class LogicMovie(LogicModuleBase):
         mode = ModelSetting.get('movie_translate_option')
         if mode == '0':
             return
-        elif mode == '1':
-            function = SystemLogicTrans.trans_google
-        elif mode == '2':
-            function = SystemLogicTrans.trans_papago
-        elif mode == '3':
-            function = SystemLogicTrans.trans_google_web
-        elif mode == '4':
-            function = SystemLogicTrans.trans_papago_web
+        else:
+            function = SystemLogicTrans.get_trans_func(mode)
 
         if SiteUtil.is_include_hangul(data['plot']) == False:
             data['plot'] = function(data['plot'], source='en')

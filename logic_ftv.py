@@ -212,14 +212,8 @@ class LogicFtv(LogicModuleBase):
         mode = ModelSetting.get('ftv_translate_option')
         if mode == '0':
             return data
-        elif mode == '1':
-            function = SystemLogicTrans.trans_google
-        elif mode == '2':
-            function = SystemLogicTrans.trans_papago
-        elif mode == '3':
-            function = SystemLogicTrans.trans_google_web
-        elif mode == '4':
-            function = SystemLogicTrans.trans_papago_web
+        else:
+            function = SystemLogicTrans.get_trans_func(mode)
 
         if data_type == 'show':
             if data['is_plot_kor'] == False:
