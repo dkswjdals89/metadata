@@ -162,8 +162,8 @@ class LogicJavUncensored(LogicModuleBase):
 
             if ret['actor'] is not None:
                 for item in ret['actor']:
-                    self.get_actor_from_server(item) # actor 정보, avdbs 차단 때문에 직접 메타서버로 요청?
-                    # self.process_actor(item)
+                    # self.get_actor_from_server(item) # actor 정보, avdbs 차단 때문에 직접 메타서버로 요청?
+                    self.process_actor(item)
 
             ret['title'] = ModelSetting.get('jav_uncensored_title_format').format(
                 originaltitle=ret['originaltitle'], 
@@ -193,29 +193,64 @@ class LogicJavUncensored(LogicModuleBase):
         if data['ret'] == 'success':
             ret = data['data']
             logger.debug(ret)
-            # 서버 올리는 부분은 아직
-            # if ModelSetting.get_bool('jav_uncensored_use_sjva') and image_mode == '3' and (SystemModelSetting.get('trans_type') == '3' or (SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '')):
-            #     MetadataServerUtil.set_metadata(code, ret, ret['title'].lower())
+            if ModelSetting.get_bool('jav_uncensored_use_sjva') and image_mode == '3' and (SystemModelSetting.get('trans_type') == '4' or (SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '')):
+                MetadataServerUtil.set_metadata_jav_censored(code, ret, ret['title'].lower())
         else:
             logger.debug('info2 fail..')
             ret = None
         return ret
 
+    # def get_actor_from_server(self, entity_actor):
+    #     for site_char in ['A', 'H']:
+    #         code = f'A{site_char}{entity_actor["originalname"]}'
+    #         data = MetadataServerUtil.get_metadata(code)
+    #         logger.debug(data)
+    #         if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
+    #             logger.info('Get actor info by server : %s %s', entity_actor['originalname'], site_char)
+    #             entity_actor['name'] = data['name']
+    #             entity_actor['name2'] = data['name2']
+    #             entity_actor['thumb'] = data['thumb']
+    #             entity_actor['site'] = data['site']
+    #             return
 
-    def get_actor_from_server(self, entity_actor):
-        for site_char in ['A', 'H']:
-            code = f'A{site_char}{entity_actor["originalname"]}'
+    #     if entity_actor['name'] is None or entity_actor['name'] == '':
+    #         entity_actor['name'] = entity_actor['originalname'] 
+    
+    def process_actor(self, entity_actor):
+        actor_site_list = ModelSetting.get_list('jav_censored_actor_order', ',')
+        #logger.debug('actor_site_list : %s', actor_site_list)
+        for site in actor_site_list:
+            if site == 'hentaku':
+                from lib_metadata.site_hentaku import SiteHentaku
+                self.process_actor2(entity_actor, SiteHentaku, None)
+            elif site == 'avdbs':
+                from lib_metadata.site_avdbs import SiteAvdbs
+                self.process_actor2(entity_actor, SiteAvdbs, ModelSetting.get('jav_censored_avdbs_proxy_url') if ModelSetting.get_bool('jav_censored_avdbs_use_proxy') else None)
+            if entity_actor['name'] is not None and entity_actor['name'] != '':
+                return
+        if entity_actor['name'] is None or entity_actor['name'] == '':
+            entity_actor['name'] = entity_actor['originalname'] 
+
+
+    def process_actor2(self, entity_actor, SiteClass, proxy_url):
+        
+        if ModelSetting.get_bool('jav_censored_use_sjva'):
+            #logger.debug('A' + SiteClass.site_char + entity_actor['originalname'])
+            code = u'A%s%s' % (SiteClass.site_char, entity_actor['originalname'])
             data = MetadataServerUtil.get_metadata(code)
-            logger.debug(data)
             if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
-                logger.info('Get actor info by server : %s %s', entity_actor['originalname'], site_char)
+                logger.info('Get actor info by server : %s %s', entity_actor['originalname'], SiteClass)
                 entity_actor['name'] = data['name']
                 entity_actor['name2'] = data['name2']
                 entity_actor['thumb'] = data['thumb']
                 entity_actor['site'] = data['site']
                 return
+        #logger.debug('Get actor... :%s', SiteClass)
+        SiteClass.get_actor_info(entity_actor, proxy_url=proxy_url)
+        #logger.debug(entity_actor)
+        if ModelSetting.get_bool('jav_censored_use_sjva'):
+            if 'name' in entity_actor and entity_actor['name'] is not None and entity_actor['name'] != '' and 'thumb' in entity_actor and entity_actor['thumb'] is not None and entity_actor['thumb'].find('.discordapp.') != -1:
+                MetadataServerUtil.set_metadata('A'+ SiteClass.site_char + entity_actor['originalname'], entity_actor, entity_actor['originalname'])
+                return
 
-        if entity_actor['name'] is None or entity_actor['name'] == '':
-            entity_actor['name'] = entity_actor['originalname'] 
-        
 
