@@ -43,7 +43,7 @@ class P(object):
                 ['setting', '설정'], ['jav321', 'Jav321'], 
             ],
             'jav_uncensored' : [
-                ['setting', '설정'], ['1pondo', '1Pondo'], ['10musume', '10Musume'], ['heyzo', 'HEYZO'], 
+                ['setting', '설정'], ['1pondo', '1Pondo'], ['10musume', '10Musume'], ['heyzo', 'HEYZO'], ['carib', 'Caribbeancom'], 
             ],
             'jav_fc2' : [
                 ['setting', '설정'], ['setting_site', '사이트별 설정'], ['test_all', '통합 테스트'], 
