@@ -20,7 +20,7 @@ class P(object):
     menu = {
         'main' : [package_name, '메타데이터'],
         'sub' : [
-            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['music', '음악'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['jav_uncensored', 'JavUnCensored'], ['book', '책'], ['log', '로그']
+            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['music', '음악'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['jav_uncensored', 'JavUnCensored'], ['jav_fc2', 'JavFc2'], ['book', '책'], ['log', '로그']
         ], 
         'category' : 'tool',
         'sub2' : {
@@ -44,6 +44,9 @@ class P(object):
             ],
             'jav_uncensored' : [
                 ['setting', '설정'], ['1pondo', '1Pondo'], ['10musume', '10Musume'], ['heyzo', 'HEYZO'], 
+            ],
+            'jav_fc2' : [
+                ['setting', '설정'], ['setting_site', '사이트별 설정'], ['test_all', '통합 테스트'], 
             ],
             'book' : [
                 ['naver', '네이버 책 검색 API'],
@@ -77,6 +80,7 @@ def initialize():
         from .logic_jav_censored import LogicJavCensored
         from .logic_jav_censored_ama import LogicJavCensoredAma
         from .logic_jav_uncensored import LogicJavUncensored
+        from .logic_jav_fc2 import LogicJavFc2
         from .logic_ott_show import LogicOttShow
         from .logic_movie import LogicMovie
         from .logic_ftv import LogicFtv
@@ -84,7 +88,7 @@ def initialize():
         from .logic_book import LogicBook
         from .logic_videostation import LogicVideoStation
         from .logic_music import LogicMusic
-        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicJavUncensored(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P), LogicMusic(P)]
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicJavUncensored(P), LogicJavFc2(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P), LogicMusic(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
