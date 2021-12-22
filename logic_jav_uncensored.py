@@ -156,7 +156,7 @@ class LogicJavUncensored(LogicModuleBase):
                 elif site == '10musume':
                     from lib_metadata.site_uncensored.site_10musume import Site10Musume as SiteClass
                 elif site == 'heyzo':
-                    from lib_metadata.site_uncensored.site_Heyzo import SiteHeyzo as SiteClass
+                    from lib_metadata.site_uncensored.site_heyzo import SiteHeyzo as SiteClass
 
                 data = SiteClass.search(
                 keyword, 
@@ -201,8 +201,8 @@ class LogicJavUncensored(LogicModuleBase):
 
             if ret['actor'] is not None:
                 for item in ret['actor']:
-                    # self.get_actor_from_server(item) # actor 정보, avdbs 차단 때문에 직접 메타서버로 요청?
-                    self.process_actor(item)
+                    self.get_actor_from_server(item) # actor 정보, avdbs 차단 때문에 직접 메타서버로 요청?
+                    # self.process_actor(item)
 
             ret['title'] = ModelSetting.get('jav_uncensored_title_format').format(
                 originaltitle=ret['originaltitle'], 
@@ -239,21 +239,21 @@ class LogicJavUncensored(LogicModuleBase):
             ret = None
         return ret
 
-    # def get_actor_from_server(self, entity_actor):
-    #     for site_char in ['A', 'H']:
-    #         code = f'A{site_char}{entity_actor["originalname"]}'
-    #         data = MetadataServerUtil.get_metadata(code)
-    #         logger.debug(data)
-    #         if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
-    #             logger.info('Get actor info by server : %s %s', entity_actor['originalname'], site_char)
-    #             entity_actor['name'] = data['name']
-    #             entity_actor['name2'] = data['name2']
-    #             entity_actor['thumb'] = data['thumb']
-    #             entity_actor['site'] = data['site']
-    #             return
+    def get_actor_from_server(self, entity_actor):
+        for site_char in ['A', 'H']:
+            code = f'A{site_char}{entity_actor["originalname"]}'
+            data = MetadataServerUtil.get_metadata(code)
+            logger.debug(data)
+            if data is not None and data['name'] is not None and data['name'] != '' and data['name'] != data['originalname'] and data['thumb'] is not None and data['thumb'].find('discordapp.net') != -1:
+                logger.info('Get actor info by server : %s %s', entity_actor['originalname'], site_char)
+                entity_actor['name'] = data['name']
+                entity_actor['name2'] = data['name2']
+                entity_actor['thumb'] = data['thumb']
+                entity_actor['site'] = data['site']
+                return
 
-    #     if entity_actor['name'] is None or entity_actor['name'] == '':
-    #         entity_actor['name'] = entity_actor['originalname'] 
+        if entity_actor['name'] is None or entity_actor['name'] == '':
+            entity_actor['name'] = entity_actor['originalname'] 
     
     def process_actor(self, entity_actor):
         actor_site_list = ModelSetting.get_list('jav_censored_actor_order', ',')
