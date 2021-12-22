@@ -13,7 +13,7 @@ from tool_base import ToolUtil, ToolBaseNotify
 # lib_metadata
 from lib_metadata.server_util import MetadataServerUtil
 # import sites
-from lib_metadata import SiteUtil, Site1PondoTv
+from lib_metadata import SiteUtil, Site1PondoTv, Site10Musume
 
 #########################################################
 from .plugin import P
@@ -32,10 +32,13 @@ class LogicJavUncensored(LogicModuleBase):
         f'{module_name}_1pondo_use_proxy' : 'False',
         f'{module_name}_1pondo_proxy_url' : '',
         f'{module_name}_1pondo_code' : '092121_001',
+        f'{module_name}_10musume_use_proxy' : 'False',
+        f'{module_name}_10musume_proxy_url' : '',
+        f'{module_name}_10musume_code' : '010620_01',
 
     }
 
-    module_map = {'1pondo': Site1PondoTv}
+    module_map = {'1pondo': Site1PondoTv, '10musume': Site10Musume}
 
     def __init__(self, P):
         super(LogicJavUncensored, self).__init__(P, 'setting')
@@ -117,13 +120,26 @@ class LogicJavUncensored(LogicModuleBase):
 
             if data['ret'] == 'success' and len(data['data']) > 0:
                 ret += data['data']
+
+        elif '10mu' in keyword.lower():
+            from lib_metadata.site_uncensored.site_10musume import Site10Musume as SiteClass
+
+            data = SiteClass.search(
+                keyword, 
+                do_trans=do_trans,
+                proxy_url=ModelSetting.get('jav_uncensored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_uncensored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
+                image_mode='3',manual=manual)
+
+            if data['ret'] == 'success' and len(data['data']) > 0:
+                ret += data['data']
                 
 
         else:
             for idx, site in enumerate(site_list):
                 if site == '1pondo':
                     from lib_metadata.site_uncensored.site_1pondotv import Site1PondoTv as SiteClass
-                # elif site == '10musume':
+                elif site == '10musume':
+                    from lib_metadata.site_uncensored.site_10musume import Site10Musume as SiteClass
 
                 data = SiteClass.search(
                 keyword, 
@@ -156,6 +172,9 @@ class LogicJavUncensored(LogicModuleBase):
             if code[1] == 'D':
                 from lib_metadata import Site1PondoTv
                 ret = self.info2(code, Site1PondoTv)
+            elif code[1] == 'M':
+                from lib_metadata import Site10Musume
+                ret = self.info2(code, Site10Musume)
             
         
         if ret is not None:
