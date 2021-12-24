@@ -253,7 +253,7 @@ class LogicJavUncensored(LogicModuleBase):
             ret = data['data']
             logger.debug(ret)
             if ModelSetting.get_bool('jav_uncensored_use_sjva') and image_mode == '3' and (SystemModelSetting.get('trans_type') == '4' or (SystemModelSetting.get('trans_type') == '1' and SystemModelSetting.get('trans_google_api_key') != '')):
-                MetadataServerUtil.set_metadata_jav_censored(code, ret, ret['title'].lower())
+                MetadataServerUtil.set_metadata_jav_uncensored(code, ret, ret['title'].lower())
         else:
             logger.debug('info2 fail..')
             ret = None
