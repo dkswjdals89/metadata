@@ -222,8 +222,8 @@ class LogicJavUncensored(LogicModuleBase):
 
             if ret['actor'] is not None:
                 for item in ret['actor']:
-                    self.get_actor_from_server(item) # actor 정보, avdbs 차단 때문에 직접 메타서버로 요청?
-                    # self.process_actor(item)
+                    # self.get_actor_from_server(item) # actor 정보, avdbs 차단 때문에 직접 메타서버로 요청
+                    self.process_actor(item)
 
             ret['title'] = ModelSetting.get('jav_uncensored_title_format').format(
                 originaltitle=ret['originaltitle'], 
