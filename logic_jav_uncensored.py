@@ -26,6 +26,7 @@ class LogicJavUncensored(LogicModuleBase):
     db_default = {
         f'{module_name}_db_version' : '1',
         f'{module_name}_use_sjva' : 'False',
+        f'{module_name}_image_mode' : '0',
         f'{module_name}_title_format' : '[{title}] {tagline}',
         f'{module_name}_use_extras' : 'False',
 
@@ -72,7 +73,7 @@ class LogicJavUncensored(LogicModuleBase):
                 ret = {}
                 ret['search'] = SiteClass.search(code, 
                     proxy_url=ModelSetting.get('jav_uncensored_%s_proxy_url' % call) if ModelSetting.get_bool('jav_uncensored_%s_use_proxy' % call) else None, 
-                    image_mode='3', manual=False) # 이미지 무조건 discord 고정
+                    image_mode=ModelSetting.get('jav_uncensored_image_mode'), manual=False)
                 if ret['search']['ret'] == 'success':
                     if len(ret['search']['data']) > 0:
                         ret['info'] = self.info(ret['search']['data'][0]['code'])
@@ -122,7 +123,7 @@ class LogicJavUncensored(LogicModuleBase):
                 keyword, 
                 do_trans=do_trans,
                 proxy_url=ModelSetting.get('jav_uncensored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_uncensored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-                image_mode='3',manual=manual)
+                image_mode=ModelSetting.get('jav_uncensored_image_mode'),manual=manual)
 
             if data['ret'] == 'success' and len(data['data']) > 0:
                 ret += data['data']
@@ -134,7 +135,7 @@ class LogicJavUncensored(LogicModuleBase):
                 keyword, 
                 do_trans=do_trans,
                 proxy_url=ModelSetting.get('jav_uncensored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_uncensored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-                image_mode='3',manual=manual)
+                image_mode=ModelSetting.get('jav_uncensored_image_mode'),manual=manual)
 
             if data['ret'] == 'success' and len(data['data']) > 0:
                 ret += data['data']
@@ -146,7 +147,7 @@ class LogicJavUncensored(LogicModuleBase):
                 keyword, 
                 do_trans=do_trans,
                 proxy_url=ModelSetting.get('jav_uncensored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_uncensored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-                image_mode='3',manual=manual)
+                image_mode=ModelSetting.get('jav_uncensored_image_mode'),manual=manual)
 
             if data['ret'] == 'success' and len(data['data']) > 0:
                 ret += data['data']
@@ -158,7 +159,7 @@ class LogicJavUncensored(LogicModuleBase):
                 keyword, 
                 do_trans=do_trans,
                 proxy_url=ModelSetting.get('jav_uncensored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_uncensored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-                image_mode='3',manual=manual)
+                image_mode=ModelSetting.get('jav_uncensored_image_mode'),manual=manual)
 
             if data['ret'] == 'success' and len(data['data']) > 0:
                 ret += data['data']
@@ -179,7 +180,7 @@ class LogicJavUncensored(LogicModuleBase):
                 keyword, 
                 do_trans=do_trans,
                 proxy_url=ModelSetting.get('jav_uncensored_{site_name}_proxy_url'.format(site_name=SiteClass.site_name)) if ModelSetting.get_bool('jav_uncensored_{site_name}_use_proxy'.format(site_name=SiteClass.site_name)) else None, 
-                image_mode='3',manual=manual)
+                image_mode=ModelSetting.get('jav_uncensored_image_mode'),manual=manual)
 
                 if data['ret'] == 'success' and len(data['data']) > 0:
                     if idx != 0:
@@ -242,7 +243,7 @@ class LogicJavUncensored(LogicModuleBase):
             return ret
 
     def info2(self, code, SiteClass):
-        image_mode = '3' # 무조건 discord 쓰도록..
+        image_mode = ModelSetting.get('jav_uncensored_image_mode')
         data = SiteClass.info(
             code,
             proxy_url=ModelSetting.get(f'jav_uncensored_{SiteClass.site_name}_proxy_url') if ModelSetting.get_bool(f'jav_uncensored_{SiteClass.site_name}_use_proxy') else None, 
