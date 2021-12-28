@@ -121,7 +121,7 @@ class LogicJavCensored(LogicModuleBase):
             if call == 'plex' or call == 'kodi':
                 manual = (req.args.get('manual') == 'True')
                 #manual = bool(req.args.get('manual'))
-                return jsonify(self.search(req.args.get('keyword'), manual=manual))
+                return jsonify(self.search(req.args.get('keyword').rstrip('-').strip(), manual=manual))
         elif sub == 'info':
             call = req.args.get('call')
             data = self.info(req.args.get('code'))
