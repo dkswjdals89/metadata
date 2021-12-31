@@ -65,8 +65,8 @@ class P(object):
         'more' : '',
         'dependency' : [
             {   
-                'plugin_name' : 'lib_metadata',
-                'home' : 'https://github.com/soju6jan/lig_metadata',
+                'name' : 'lib_metadata',
+                'home' : 'https://github.com/soju6jan/lib_metadata',
             }
         ]
     }
