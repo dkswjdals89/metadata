@@ -57,12 +57,18 @@ class P(object):
     plugin_info = {
         'version' : '0.2.0.0',
         'name' : package_name,
-        'category_name' : 'tool',
+        'category' : 'tool',
         'icon' : '',
         'developer' : 'soju6jan',
         'description' : 'Metadata',
         'home' : 'https://github.com/soju6jan/%s' % package_name,
         'more' : '',
+        'dependency' : [
+            {   
+                'plugin_name' : 'lib_metadata',
+                'home' : 'https://github.com/soju6jan/lig_metadata',
+            }
+        ]
     }
     ModelSetting = get_model_setting(package_name, logger)
     logic = None

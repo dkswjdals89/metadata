@@ -1,10 +1,16 @@
 {
     "version": "0.2.0.0",
     "name": "metadata",
-    "category_name": "tool",
+    "category": "tool",
     "icon": "",
     "developer": "soju6jan",
     "description": "Metadata",
     "home": "https://github.com/soju6jan/metadata",
-    "more": ""
+    "more": "",
+    "dependency": [
+        {
+            "plugin_name": "lib_metadata",
+            "home": "https://github.com/soju6jan/lig_metadata"
+        }
+    ]
 }
