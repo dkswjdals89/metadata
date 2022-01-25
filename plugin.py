@@ -281,11 +281,11 @@ def basenormal(sub):
             elif mode == 'tving_movie':
                 from support.site.tving import SupportTving
                 data = SupportTving.ins.get_info(param, 'stream50')
-                ret = data['play_info']['url']
+                ret = data['url']
             elif mode == 'tving':
                 from support.site.tving import SupportTving
                 data = SupportTving.ins.get_info(param, 'stream50')
-                ret = data['play_info']['url']
+                ret = data['url']
             elif mode == 'wavve_movie':
                 import framework.wavve.api as Wavve
                 data = {'wavve_url':Wavve.streaming2('movie', param, 'FHD', return_url=True)}
