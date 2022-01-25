@@ -99,9 +99,9 @@ class LogicOttShow(LogicModuleBase):
         try:
             show = None
             if code[1] == 'V': 
-                import framework.tving.api as Tving
-                data, url = Tving.get_episode_json_default(code[2:], 'stream50')
-                return {'ret':'success', 'site':'tving', 'url':url}
+                from support.site.tving import SupportTving
+                data = SupportTving.ins.get_info(code[2:], 'stream50')
+                return {'ret':'success', 'site':'tving', 'url':data['play_info']['url']}
             elif code[1] == 'W': 
                 import framework.wavve.api as Wavve
                 data = Wavve.streaming('vod', code[2:], '1080p', return_url=True)

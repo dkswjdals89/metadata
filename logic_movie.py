@@ -482,8 +482,8 @@ class LogicMovie(LogicModuleBase):
         try:
             logger.debug('code : %s', code)
             if code[1] == 'V': 
-                import framework.tving.api as Tving
-                data = Tving.get_stream_info_by_web('movie', code[2:], 'stream50')
+                from support.site.tving import SupportTving
+                data = SupportTving.ins.get_info(code[2:], 'stream50')
                 #logger.debug(data)
                 return data['play_info']
             elif code[1] == 'W': 

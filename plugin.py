@@ -279,13 +279,13 @@ def basenormal(sub):
                 #logger.debug(json.dumps(data, indent=4))
                 ret = data['videoLocation']['url']
             elif mode == 'tving_movie':
-                import framework.tving.api as Tving
-                data = Tving.get_stream_info_by_web('movie', param, 'stream50')
-                ret = data['play_info']['hls']
+                from support.site.tving import SupportTving
+                data = SupportTving.ins.get_info(param, 'stream50')
+                ret = data['play_info']['url']
             elif mode == 'tving':
-                import framework.tving.api as Tving
-                data, url = Tving.get_episode_json_default(param, 'stream50')
-                ret = url
+                from support.site.tving import SupportTving
+                data = SupportTving.ins.get_info(param, 'stream50')
+                ret = data['play_info']['url']
             elif mode == 'wavve_movie':
                 import framework.wavve.api as Wavve
                 data = {'wavve_url':Wavve.streaming2('movie', param, 'FHD', return_url=True)}
