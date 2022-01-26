@@ -25,8 +25,8 @@
       {{ macros.setting_input_text_and_buttons('ktv_wavve_test_info', '웨이브 방송정보 API', [['ktv_wavve_test_info_btn', '테스트']], value=arg['ktv_wavve_test_info'], desc=None) }}
       {{ macros.m_hr() }}
 
-      {{ macros.setting_input_text_and_buttons('ktv_tving_test_search', '티빙 검색 API', [['ktv_tving_test_search_btn', '테스트']], value=arg['ktv_tving_test_search'], desc=None) }}
-      {{ macros.setting_input_text_and_buttons('ktv_tving_test_info', '티빙 방송정보 API', [['ktv_tving_test_info_btn', '테스트']], value=arg['ktv_tving_test_info'], desc=None) }}
+      {{ macros.setting_input_text_and_buttons('ktv_tving_test_search', '티빙 검색 API', [['ktv_tving_test_search_btn', '테스트']], value=arg['ktv_tving_test_search'], desc=["방송 검색어"]) }}
+      {{ macros.setting_input_text_and_buttons('ktv_tving_test_info', '티빙 방송정보 API', [['ktv_tving_test_info_btn', '테스트']], value=arg['ktv_tving_test_info'], desc=["P로 시작하는 값. 위 검색 결과 중 mast_cd 값"]) }}
     {{ macros.m_tab_content_end() }}
   </div><!--tab-content-->
 </form>
