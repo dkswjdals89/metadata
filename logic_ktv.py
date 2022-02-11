@@ -17,7 +17,7 @@ from framework import db, scheduler, path_data, socketio, SystemModelSetting, ap
 from framework.util import Util
 from framework.common.util import headers
 from plugin import LogicModuleBase, default_route_socketio
-
+from support.site.tving import SupportTving
 # 패키지
 from lib_metadata import SiteDaumTv, SiteTmdbTv, SiteTvingTv, SiteWavveTv, SiteUtil
 
@@ -106,20 +106,19 @@ class LogicKtv(LogicModuleBase):
                             if episode_data['pagecount'] == episode_data['count']:# or page == 6:
                                 break
                 elif call == 'tving':
-                    import  framework.tving.api as Tving
                     if mode == 'search':
-                        ret = Tving.search_tv(keyword)
+                        ret = SupportTving.ins.search(keyword)
                     elif mode == 'info':
                         ret = {}
-                        ret['program'] = Tving.get_program_programid(keyword)
+                        ret['program'] = SupportTving.ins.get_program_programid(keyword)
                         ret['episodes'] = []
                         page = 1
                         while True:
-                            episode_data = Tving.get_frequency_programid(keyword, page=page)
-                            for epi in episode_data['body']['result']:
+                            episode_data = SupportTving.ins.get_frequency_programid(keyword, page=page)
+                            for epi in episode_data['result']:
                                 ret['episodes'].append(epi['episode'])
                             page += 1
-                            if episode_data['body']['has_more'] == 'N':
+                            if episode_data['has_more'] == 'N':
                                 break
                 return jsonify(ret)
         except Exception as e: 
