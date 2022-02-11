@@ -40,7 +40,9 @@ class LogicJavFc2(LogicModuleBase):
         f'{module_name}_javdb_url' : 'https://javdb.com',
         f'{module_name}_javdb_jdbsession' : '',
         f'{module_name}_javdb_delay' : '15',
-
+        
+        f'{module_name}_7mmtv_use_proxy' : 'False',
+        f'{module_name}_7mmtv_proxy_url' : '',
         f'{module_name}_7mmtv_url' : 'https://bb9711.com',
 
         f'{module_name}_fc2com_code' : 'FC2-2313436',
@@ -137,7 +139,7 @@ class LogicJavFc2(LogicModuleBase):
     ################################################################
 
     def search(self, keyword, manual=False):
-        if re.match('\\d+', keyword):
+        if re.fullmatch('\\d{5,7}', keyword):
             fc2_code = keyword
         elif re.search('FC2[-_\\s]?(?:PPV)?[-_\\s]?(\\d{6,7})-?(?:cd)?(\\d)?', keyword, re.I):
             fc2_code = re.search('FC2[-_\\s]?(?:PPV)?[-_\\s]?(\\d{6,7})-?(?:cd)?(\\d)?', keyword, re.I).group(1).lstrip('0')
