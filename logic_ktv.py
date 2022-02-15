@@ -46,6 +46,7 @@ class LogicKtv(LogicModuleBase):
         'ktv_tving_test_info' : '',
         'ktv_use_tmdb' : 'True',
         'ktv_total_test_info' : '',
+        'ktv_change_actor_name_rule' : '',
     }
 
     module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
@@ -221,6 +222,22 @@ class LogicKtv(LogicModuleBase):
 
             if show is not None:
                 show['ktv_episode_info_order'] = ModelSetting.get_list('ktv_episode_info_order', ',')
+
+                try:
+                    rules = ModelSetting.get_list('ktv_change_actor_name_rule', '\n')
+                    for rule in rules:
+                        tmps = rule.split('|')
+                        if len(tmps) != 3:
+                            continue
+                        if tmps[0] == show['title']:
+                            for actor in show['actor']:
+                                if actor['name'] == tmps[1]:
+                                    actor['name'] = tmps[2]
+                                    break
+                except Exception as e: 
+                    P.logger.error('Exception:%s', e)
+                    P.logger.error(traceback.format_exc())
+
                 return show
 
         except Exception as e: 
