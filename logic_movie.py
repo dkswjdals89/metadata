@@ -278,7 +278,7 @@ class LogicMovie(LogicModuleBase):
 
             #'movie_use_sub_tmdb' : '0' #['모두 사용', 'Daum은 사용 안함', '사용 안함']
             movie_use_sub_tmdb = ModelSetting.get('movie_use_sub_tmdb')
-            logger.warning(movie_use_sub_tmdb)
+            #logger.warning(movie_use_sub_tmdb)
             if code[1] != 'T' and (movie_use_sub_tmdb == '0' or (movie_use_sub_tmdb == '1' and code[1] != 'D')):
                 try:
                     tmdb_info = None
