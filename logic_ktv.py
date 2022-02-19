@@ -45,6 +45,8 @@ class LogicKtv(LogicModuleBase):
         'ktv_tving_test_search' : '',
         'ktv_tving_test_info' : '',
         'ktv_use_tmdb' : 'True',
+        'ktv_total_test_info' : '',
+        'ktv_change_actor_name_rule' : '',
     }
 
     module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
@@ -71,9 +73,9 @@ class LogicKtv(LogicModuleBase):
                 ModelSetting.set('ktv_%s_test_%s' % (call, mode), keyword)
 
                 if call == 'total':
-                    manual = (req.form['manual'] == 'manual')
+                    ret = {}
                     if mode == 'search':
-                        ret = {}
+                        manual = (req.form['manual'] == 'manual')
                         ret['search'] = self.search(keyword, manual=manual)
                         if 'daum' in ret['search']:
                             ret['info'] = self.info(ret['search']['daum']['code'], ret['search']['daum']['title'])
@@ -81,6 +83,16 @@ class LogicKtv(LogicModuleBase):
                             ret['info'] = self.info(ret['search']['tving'][0]['code'], '')
                         elif 'wavve' in ret['search']:
                             ret['info'] = self.info(ret['search']['wavve'][0]['code'], '')
+                    elif mode == 'info':
+                        code = keyword
+                        title = ''
+                        tmps = keyword.split('|')
+                        if len(tmps) == 2:
+                            code = tmps[0]
+                            title = tmps[1]
+                        
+                        ret['info'] = self.info(code, title)
+                    
                 elif call == 'daum':
                     if mode == 'search':
                         ret = {}
@@ -210,6 +222,22 @@ class LogicKtv(LogicModuleBase):
 
             if show is not None:
                 show['ktv_episode_info_order'] = ModelSetting.get_list('ktv_episode_info_order', ',')
+
+                try:
+                    rules = ModelSetting.get_list('ktv_change_actor_name_rule', '\n')
+                    for rule in rules:
+                        tmps = rule.split('|')
+                        if len(tmps) != 3:
+                            continue
+                        if tmps[0] == show['title']:
+                            for actor in show['actor']:
+                                if actor['name'] == tmps[1]:
+                                    actor['name'] = tmps[2]
+                                    break
+                except Exception as e: 
+                    P.logger.error('Exception:%s', e)
+                    P.logger.error(traceback.format_exc())
+
                 return show
 
         except Exception as e: 
