@@ -12,7 +12,7 @@ from framework.util import Util
 from plugin import get_model_setting, Logic, default_route
 # 패키지
 #########################################################
-
+from support.base import d
 class P(object):
     package_name = __name__.split('.')[0]
     logger = get_logger(package_name)
@@ -20,7 +20,7 @@ class P(object):
     menu = {
         'main' : [package_name, '메타데이터'],
         'sub' : [
-            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['music', '음악'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['jav_uncensored', 'JavUnCensored'], ['jav_fc2', 'JavFc2'], ['book', '책'], ['log', '로그']
+            ['movie', '영화'], ['ktv', '국내TV'],  ['ftv', '외국TV'], ['music_normal', '음악 일반'], ['jav_censored', 'JavCensored'], ['jav_censored_ama', 'JavCensored AMA'], ['jav_uncensored', 'JavUnCensored'], ['jav_fc2', 'JavFc2'], ['book', '책'], ['log', '로그']
         ], 
         'category' : 'tool',
         'sub2' : {
@@ -33,8 +33,8 @@ class P(object):
             'ftv' : [
                 ['setting', '설정'], ['test', '테스트'],
             ],
-            'music' : [
-                ['test', '테스트'],
+            'music_normal' : [
+                ['setting', '설정'], ['test', '테스트'],
             ],
             'jav_censored' : [
                 ['setting', '설정'], ['dmm', 'DMM'], ['mgs', 'MGS'], ['javbus', 'Javbus'],
@@ -94,7 +94,8 @@ def initialize():
         from .logic_book import LogicBook
         from .logic_videostation import LogicVideoStation
         from .logic_music import LogicMusic
-        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicJavUncensored(P), LogicJavFc2(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P), LogicMusic(P)]
+        from .logic_music_normal import LogicMusicNormal
+        P.module_list = [LogicKtv(P), LogicJavCensored(P), LogicJavCensoredAma(P), LogicJavUncensored(P), LogicJavFc2(P), LogicOttShow(P), LogicMovie(P), LogicFtv(P), LogicLyric(P), LogicBook(P), LogicVideoStation(P), LogicMusic(P), LogicMusicNormal(P)]
         P.logic = Logic(P)
         default_route(P)
     except Exception as e: 
@@ -270,9 +271,22 @@ def basenormal(sub):
                 from lib_metadata import SiteNaverMovie
                 ret = SiteNaverMovie.get_video_url(param)
             elif mode == 'youtube':
-                command = ['youtube-dl', '-f', 'best', '-g', 'https://www.youtube.com/watch?v=%s' % request.args.get('param')]
-                from system.logic_command import SystemLogicCommand
-                ret = SystemLogicCommand.execute_command_return(command).strip()
+                try:
+                    import yt_dlp
+                except:
+                    try: os.system("{} install yt-dlp".format(app.config['config']['pip']))
+                    except: pass
+                ydl_opts = {
+                    "quiet": True,
+                }
+                ydl = yt_dlp.YoutubeDL(ydl_opts)
+                target_url = f"https://www.youtube.com/watch?v={request.args.get('param')}"
+                result = ydl.extract_info(target_url, download=False)
+                if 'formats' in result:
+                    for item in reversed(result['formats']):
+                        if item['ext'] == 'mp4' and item['acodec'].startswith('mp4a') and item['vcodec'].startswith('avc1'):
+                            ret = item['url']
+                            break
             elif mode == 'kakao':
                 url = 'https://tv.kakao.com/katz/v2/ft/cliplink/{}/readyNplay?player=monet_html5&profile=HIGH&service=kakao_tv&section=channel&fields=seekUrl,abrVideoLocationList&startPosition=0&tid=&dteType=PC&continuousPlay=false&contentType=&{}'.format(param, int(time.time()))
                 data = requests.get(url).json()
