@@ -128,6 +128,7 @@ class LogicMusicNormal(LogicModuleBase):
 
 
     def search(self, keyword, param, manual=False):
+        logger.info(f"param:{param} keyword:{keyword}")
         if param == 'artist':
             return self.search_artist(keyword)
         elif param == 'album':
@@ -199,7 +200,7 @@ class LogicMusicNormal(LogicModuleBase):
 
     def song(self, song_id, mode='txt', artist=None, track_title=None, filename=None):
         data = SiteMelon.info_song(song_id)
-        logger.debug(d(data))
+        #logger.debug(d(data))
         if data['ret'] == 'success':
             tmp = ''
             if '작사' in data['producer']:
