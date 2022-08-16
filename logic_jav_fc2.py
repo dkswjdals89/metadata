@@ -27,26 +27,20 @@ class LogicJavFc2(LogicModuleBase):
     db_default = {
         f'{module_name}_db_version' : '1',
         f'{module_name}_use_sjva' : 'False',
-        f'{module_name}_order' : 'fc2com, bp4x, javdb, fc2cm, fc2hub, 7mmtv',
+        f'{module_name}_order' : 'fc2com, bp4x, fc2cm, fc2hub, 7mmtv',
         f'{module_name}_title_format' : '[{title}] {tagline}',
         f'{module_name}_use_extras' : 'False',
         f'{module_name}_image_mode' : '3',
 
         f'{module_name}_fc2com_use_proxy' : 'False',
         f'{module_name}_fc2com_proxy_url' : '',
-
-        f'{module_name}_javdb_use_proxy' : 'False',
-        f'{module_name}_javdb_proxy_url' : '',
-        f'{module_name}_javdb_url' : 'https://javdb.com',
-        f'{module_name}_javdb_jdbsession' : '',
-        f'{module_name}_javdb_delay' : '15',
-        
+    
         f'{module_name}_7mmtv_use_proxy' : 'False',
         f'{module_name}_7mmtv_proxy_url' : '',
         f'{module_name}_7mmtv_url' : 'https://bb9711.com',
 
         f'{module_name}_fc2com_code' : 'FC2-2313436',
-        f'{module_name}_javdb_code' : 'FC2-2313436',
+        f'{module_name}_msin_code' : 'FC2-2906321',
         f'{module_name}_7mmtv_code' : 'FC2-1032322',
         f'{module_name}_bp4x_code' : 'FC2-2313436',
         f'{module_name}_fc2cm_code' : 'FC2-2313436',
@@ -54,8 +48,6 @@ class LogicJavFc2(LogicModuleBase):
         f'{module_name}_total_code' : 'FC2-2313436' 
 
     }
-
-    # module_map = {'fc2com':SiteFc2Com, 'javdb':SiteJavdb, 'bp4x':SiteBp4x, 'fc2cm':SiteFc2Cm, 'fc2hub':SiteFc2Hub, '7mmtv':Site7mmTv}
 
     def __init__(self, P):
         super(LogicJavFc2, self).__init__(P, 'setting')
@@ -74,7 +66,7 @@ class LogicJavFc2(LogicModuleBase):
 
     def process_ajax(self, sub, req):
         try:
-            from lib_metadata import SiteFc2Com, SiteJavdb, SiteBp4x, SiteFc2Cm, SiteFc2Hub, Site7mmTv
+            from lib_metadata import SiteFc2Com, SiteMsin, SiteBp4x, SiteFc2Cm, SiteFc2Hub, Site7mmTv
             if sub == 'test':
                 code = req.form['code']
                 call = req.form['call']
@@ -88,7 +80,7 @@ class LogicJavFc2(LogicModuleBase):
                     ret = self.search(code, manual=True)
 
                 else:
-                    module_map = {'fc2com':SiteFc2Com, 'javdb':SiteJavdb, 'bp4x':SiteBp4x, 'fc2cm':SiteFc2Cm, 'fc2hub':SiteFc2Hub, '7mmtv':Site7mmTv}
+                    module_map = {'fc2com':SiteFc2Com, 'msin':SiteMsin, 'bp4x':SiteBp4x, 'fc2cm':SiteFc2Cm, 'fc2hub':SiteFc2Hub, '7mmtv':Site7mmTv}
                     SiteClass = module_map[call]
                     ret['search'] = SiteClass.search(code, 
                         proxy_url=ModelSetting.get('jav_fc2_%s_proxy_url' % call) if ModelSetting.get_bool('jav_fc2_%s_use_proxy' % call) else None, 
@@ -99,15 +91,15 @@ class LogicJavFc2(LogicModuleBase):
                 
                 return jsonify(ret)
 
-            if sub == 'test2': # 접속테스트 for javdb쿠키
-                javdb_cookie = req.form['javdb_cookie']
-                ret = {}
-                res = SiteJavdb.test_cookie()
-                if res is True:
-                    ret['result'] = 'success'
-                else:
-                    ret['result'] = 'failed'
-                return ret
+            # if sub == 'test2': # 접속테스트 for javdb쿠키
+            #     javdb_cookie = req.form['javdb_cookie']
+            #     ret = {}
+            #     res = SiteJavdb.test_cookie()
+            #     if res is True:
+            #         ret['result'] = 'success'
+            #     else:
+            #         ret['result'] = 'failed'
+            #     return ret
 
 
         except Exception as e:
@@ -155,8 +147,8 @@ class LogicJavFc2(LogicModuleBase):
         for idx, site in enumerate(site_list):
             if site == 'fc2com':
                 from lib_metadata.site_fc2.site_fc2com import SiteFc2Com as SiteClass
-            elif site == 'javdb':
-                from lib_metadata.site_fc2.site_javdb import SiteJavdb as SiteClass
+            elif site == 'msin':
+                from lib_metadata.site_fc2.site_msin import SiteMsin as SiteClass
             elif site == 'bp4x':
                 from lib_metadata.site_fc2.site_bp4x import SiteBp4x as SiteClass
             elif site == 'fc2cm':
@@ -182,9 +174,9 @@ class LogicJavFc2(LogicModuleBase):
             if manual:
                 continue
             else:
-                if site == 'javdb':
-                    logger.debug(f'javdb delay {ModelSetting.get("jav_fc2_javdb_delay")} seconds....')
-                    time.sleep(int(ModelSetting.get('jav_fc2_javdb_delay')))
+                # if site == 'javdb':
+                #     logger.debug(f'javdb delay {ModelSetting.get("jav_fc2_javdb_delay")} seconds....')
+                #     time.sleep(int(ModelSetting.get('jav_fc2_javdb_delay')))
                 if len(ret) > 0 and ret[0]['score'] > 95:
                     break
 
@@ -202,9 +194,9 @@ class LogicJavFc2(LogicModuleBase):
             if code[1] == 'F':
                 from lib_metadata.site_fc2.site_fc2com import SiteFc2Com
                 ret = self.info2(code, SiteFc2Com)
-            elif code[1] == 'J':
-                from lib_metadata.site_fc2.site_javdb import SiteJavdb
-                ret = self.info2(code, SiteJavdb)
+            elif code[1] == 'N':
+                from lib_metadata.site_fc2.site_msin import SiteMsin
+                ret = self.info2(code, SiteMsin)
             elif code[1] == 'B':
                 from lib_metadata.site_fc2.site_bp4x import SiteBp4x
                 ret = self.info2(code, SiteBp4x)
