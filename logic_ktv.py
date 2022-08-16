@@ -47,6 +47,8 @@ class LogicKtv(LogicModuleBase):
         'ktv_use_tmdb' : 'True',
         'ktv_total_test_info' : '',
         'ktv_change_actor_name_rule' : '',
+        # Daum 에피소드 줄거리에서 날짜, 제목 제거.
+        'ktv_summary_duplicate_remove' : 'False',
     }
 
     module_map = {'daum':SiteDaumTv, 'tving':SiteTvingTv, 'wavve':SiteWavveTv, 'tmdb':SiteTmdbTv}
@@ -250,7 +252,7 @@ class LogicKtv(LogicModuleBase):
         try:
             if code[1] == 'D':
                 from lib_metadata import SiteDaumTv
-                data = SiteDaumTv.episode_info(code, include_kakao=ModelSetting.get_bool('ktv_use_kakaotv_episode'))
+                data = SiteDaumTv.episode_info(code, include_kakao=ModelSetting.get_bool('ktv_use_kakaotv_episode'), summary_duplicate_remove=ModelSetting.get_bool('ktv_summary_duplicate_remove'))
                 if data['ret'] == 'success':
                     return data['data']
 

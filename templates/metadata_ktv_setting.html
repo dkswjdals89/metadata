@@ -27,7 +27,7 @@
         '예) 아는 형님|김영철|김영철(개그맨)'
         ], 
         value=arg['ktv_change_actor_name_rule'], row='10') }}
-      
+      {{ macros.setting_checkbox('ktv_summary_duplicate_remove', 'Daum 에피소드 줄거리 모드', value=arg['ktv_summary_duplicate_remove'], desc=['On : 날짜, 제목 중복 제거', 'Off : 날짜, 제목 중복 표시']) }}
       </form>
 
     {{ macros.m_tab_content_end() }}

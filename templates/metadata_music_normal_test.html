@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div>
+  <!--
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+  -->
+
+  <nav>  
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head2('normal', '테스트', true) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+  <div class="tab-content" id="nav-tabContent">
+    {{ macros.m_tab_content_start('normal', true) }}
+      {{ macros.setting_input_text_and_buttons('music_normal_test_artist_search', 'MELON 아티스트 검색', [['music_normal_test_artist_search_api_btn', 'API'], ['music_normal_test_artist_search_btn', '자체포맷']], value=arg['music_normal_test_artist_search'], desc=None) }}
+
+      {{ macros.setting_input_text_and_buttons('music_normal_test_artist_info', 'MELON 아티스트 정보', [['music_normal_test_artist_info_btn', '기본정보']], value=arg['music_normal_test_artist_info'], desc=['code 입력']) }}
+
+      {{ macros.m_hr() }}
+
+      {{ macros.setting_input_text_and_buttons('music_normal_test_album_search', 'MELON 앨범 검색', [['music_normal_test_album_search_api_btn', 'API'], ['music_normal_test_album_search_btn', '자체포맷']], value=arg['music_normal_test_album_search'], desc=['앨범명|아티스트명|아티스트코드|발매일']) }}
+
+      {{ macros.setting_input_text_and_buttons('music_normal_test_album_info', 'MELON 앨범 정보', [['music_normal_test_album_info_btn', '자체포맷']], value=arg['music_normal_test_album_info'], desc=['code 입력']) }}
+      {{ macros.setting_input_text_and_buttons('music_normal_test_song', 'MELON 노래 정보', [['music_normal_test_song_btn', '자체포맷']], value=arg['music_normal_test_song'], desc=['멜론 song id 입력']) }}
+    {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+</form>
+</div><!--전체-->
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name'] }}";
+var sub = "{{arg['sub'] }}";
+var sub2 = "{{arg['sub2'] }}";
+var current_data = null;
+
+$(document).ready(function(){
+});
+
+$("body").on('click', '#music_normal_test_artist_search_api_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'artist|melon|search|api', $('#music_normal_test_artist_search').val());
+});
+
+$("body").on('click', '#music_normal_test_artist_search_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'artist|melon|search|normal', $('#music_normal_test_artist_search').val());
+});
+
+/*
+$("body").on('click', '#music_normal_test_artist_info_api_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'artist|melon|info|api', $('#music_normal_test_artist_info').val());
+});
+*/
+
+$("body").on('click', '#music_normal_test_artist_info_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'artist|melon|info|normal', $('#music_normal_test_artist_info').val());
+});
+
+
+
+$("body").on('click', '#music_normal_test_album_search_api_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'album|melon|search|api', $('#music_normal_test_album_search').val());
+});
+
+$("body").on('click', '#music_normal_test_album_search_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'album|melon|search|normal', $('#music_normal_test_album_search').val());
+});
+
+$("body").on('click', '#music_normal_test_album_info_api_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'album|melon|info|api', $('#music_normal_test_album_info').val());
+});
+
+$("body").on('click', '#music_normal_test_album_info_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'album|melon|info|normal', $('#music_normal_test_album_info').val());
+});
+
+$("body").on('click', '#music_normal_test_song_btn', function(e){
+  e.preventDefault();
+  global_send_command2('test', 'song|melon||', $('#music_normal_test_song').val());
+});
+
+
+
+
+</script>    
+{% endblock %}
