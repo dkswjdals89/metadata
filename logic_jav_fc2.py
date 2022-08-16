@@ -27,7 +27,7 @@ class LogicJavFc2(LogicModuleBase):
     db_default = {
         f'{module_name}_db_version' : '1',
         f'{module_name}_use_sjva' : 'False',
-        f'{module_name}_order' : 'fc2com, bp4x, fc2cm, fc2hub, 7mmtv',
+        f'{module_name}_order' : 'fc2com, msin, bp4x, fc2cm, fc2hub, 7mmtv',
         f'{module_name}_title_format' : '[{title}] {tagline}',
         f'{module_name}_use_extras' : 'False',
         f'{module_name}_image_mode' : '3',
