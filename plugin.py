@@ -254,7 +254,7 @@ def basenormal(sub):
             if mode == 'landscape_to_poster':
                 from PIL import Image
                 image_url = py_urllib.unquote_plus(request.args.get('url'))
-                im = Image.open(requests.get(image_url, stream=True).raw)
+                im = Image.open(requests.get(image_url, stream=True, proxies=FileProcess.Vars.proxies).raw)
                 width, height = im.size
                 left = width/1.895734597
                 top = 0
